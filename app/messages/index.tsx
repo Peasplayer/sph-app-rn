@@ -67,17 +67,14 @@ export default function Index() {
     }, [hidden]);
 
     const loadData = async () => {
-        const hiddenData = await Cache.currentSession.Messages.fetchChats(false);
+        const data = await Cache.currentSession.Messages.fetchChats("all");
 
-        Cache.debugLog.push("Message # fetch chats : " + JSON.stringify(hiddenData))
-        setHiddenChats(hiddenData.data);
+        const hiddenData = data.data.filter((c: any) => c.deleted === true);
+        setHiddenChats(hiddenData);
+        const visibleData = data.data.filter((c: any) => c.deleted === false);
+        setVisibleChats(visibleData);
 
-        const visibleData = await Cache.currentSession.Messages.fetchChats(true);
-
-        Cache.debugLog.push("Message # fetch chats : " + JSON.stringify(visibleData))
-        setVisibleChats(visibleData.data);
-
-        setShownChats(hidden ? hiddenData.data : visibleData.data);
+        setShownChats(hidden ? hiddenData : visibleData);
 
         setLoading(false);
     }
