@@ -1,4 +1,4 @@
-import {Alert, Pressable, StyleSheet, Text, View} from "react-native";
+import {Alert, StyleSheet, Text, View} from "react-native";
 import {Button, TextInput} from 'react-native-paper';
 // @ts-ignore
 import {Session} from "sph-api";
@@ -6,8 +6,6 @@ import {Session} from "sph-api";
 import FetchWrapper from "@/lib/FetchWrapper";
 import Crypto from "@/lib/Crypto";
 import React from "react";
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
@@ -34,13 +32,27 @@ export default function Login() {
 
         var session = new Session(new Crypto(), new FetchWrapper());
         session.login({schoolId, username, password}).then(async (result: any) => {
-            console.log(result);
+            Cache.debugLog.push("Login : " + JSON.stringify(result))
 
             if (result.success) {
                 Cache.currentSession = session;
                 SecureStore.setItemAsync("credentials", JSON.stringify({schoolId, username, password}));
 
                 router.navigate("/home");
+            }
+            else {
+                if (result.code === 1) {
+                    Alert.alert("Fehler", "Unvollständige Zugangsdaten!");
+                }
+                else if (result.code === 2) {
+                    Alert.alert("Fehler", "Das Schulportal hat folgenden Fehler zurückgegeben:\n\n" + result.data);
+                }
+                else if (result.code === 3) {
+                    Alert.alert("Fehler", "Ein Fehler bei der Verschlüsselung ist aufgetreten!");
+                }
+                else {
+                    Alert.alert("Fehler", "Ein Fehler ist aufgetreten!\nCode: " + result.code + "\n\n" + result.data);
+                }
             }
         });
     }
@@ -102,10 +114,6 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         marginBottom: 20,
     },
-    icon: {
-        width: 45,
-        alignItems: "center",
-    },
     input: {
         flex: 1,
     },
@@ -122,9 +130,6 @@ const styles = StyleSheet.create({
     button: {
         width: "80%",
         marginTop: 25,
-        fontSize: 24
-    },
-    buttonText: {
         fontSize: 24
     }
 });

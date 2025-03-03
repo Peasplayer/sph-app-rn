@@ -1,17 +1,14 @@
-import {Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import React, {ReactElement, useRef, useState} from "react";
-import {Cell, Col, Cols, Row, Rows, Table, TableWrapper} from "react-native-reanimated-table";
+import {Alert, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
+import React, {useEffect, useRef, useState} from "react";
+import {Row, Table} from "react-native-reanimated-table";
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, BottomSheetView,} from '@gorhom/bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 import Cache from "@/lib/Cache";
-import {Badge, Button, Checkbox, IconButton} from "react-native-paper";
-/*import Test from "@/components/test";
-import Table from "@/components/table/Table";
-import Row, {IRow} from "@/components/table/Row";
-import Cell from "@/components/table/Cell";*/
+import {Appbar, Badge, Button, Text} from "react-native-paper";
+import Utils from "@/lib/Utils";
+import {router, useNavigation} from "expo-router";
 
 export default function Schedule() {
     const [schedule, setSchedule] = useState<any>(undefined);
@@ -20,7 +17,29 @@ export default function Schedule() {
     const [hiddenSubjects, setHiddenSubjects] = useState<any[]>([]);
     const [hiddenSubjectsModalVisible, setHiddenSubjectsModalVisible] = useState(false);
     const [showSubjectsFromOtherWeek, setShowSubjectsFromOtherWeek] = useState(false);
+    const [refreshing, setRefreshing] = React.useState(false);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true);
+        loadSchedule(() => setRefreshing(false));
+    }, []);
+
+    const navigation = useNavigation();
+    useEffect(() => {
+        navigation.setOptions({ headerShown: true, header: () => (
+            <Appbar.Header>
+                <Appbar.BackAction onPress={router.back} />
+                <Appbar.Content title="Stundenplan" />
+                <Appbar.Action icon={"filter"} size={24} mode={showSubjectsFromOtherWeek ? undefined : 'contained'} onPress={() => {
+                    setShowSubjectsFromOtherWeek(!showSubjectsFromOtherWeek);
+                    displaySchedule(undefined, undefined, !showSubjectsFromOtherWeek);
+                }} />
+                <Appbar.Action icon={"eye-off"} size={24} onPress={() => setHiddenSubjectsModalVisible(true)} />
+                <Appbar.Action icon={"information"} size={24} onPress={() => Alert.alert(schedule.details.title, schedule.details.currentWeek?.fullText ?? "")} />
+            </Appbar.Header>)
+        });
+    })
 
     function Header(props: { children?: string }) {
         return (
@@ -41,41 +60,11 @@ export default function Schedule() {
 
     function SubjectCell(subject: any, _schedule: any) {
         const isThisWeek = !(subject.week !== undefined && _schedule.details?.currentWeek?.week !== subject.week);
-        const color = isThisWeek ? stringToColour(subject.id) : "#3b3b3b";
+        const color = isThisWeek ? Utils.stringToColour(subject.id) : "#3b3b3b";
         return (<TouchableOpacity onPress={() => showDetails(subject)} style={[styles.subjectCell, {backgroundColor: color, flexDirection: "row", flexWrap: "wrap"}]} key={subject.id}>
-            <Text style={[{color: wc_hex_is_dark(color) ? "white": "black"}, (subject.week ? {marginRight: 4} : {})]}>{subject.subject}{/*subject.week !== undefined ? "  [" + subject.week + "]" : ""*/}</Text>
+            <Text style={[{color: Utils.wc_hex_is_dark(color) ? "white": "black"}, (subject.week ? {marginRight: 4} : {})]}>{subject.subject}{/*subject.week !== undefined ? "  [" + subject.week + "]" : ""*/}</Text>
             {subject.week ? <Badge>{subject.week}</Badge> : <></>}
         </TouchableOpacity>)
-    }
-
-    // Credits: https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript#answer-16348977
-    function stringToColour(str: string|undefined) {
-        if (str == undefined)
-            return undefined;
-
-        let hash = 0;
-        str.split('').forEach(char => {
-            hash = char.charCodeAt(0) + ((hash << 5) - hash)
-        })
-        let colour = '#'
-        for (let i = 0; i < 3; i++) {
-            const value = (hash >> (i * 8)) & 0xff
-            colour += value.toString(16).padStart(2, '0')
-        }
-        return colour
-    }
-
-    // Credits: https://stackoverflow.com/questions/12043187/how-to-check-if-hex-color-is-too-black#answer-51567564
-    function wc_hex_is_dark(color: string|undefined) {
-        if (color == undefined)
-            return false;
-
-        const hex = color.replace('#', '');
-        const c_r = parseInt(hex.substring(0, 0 + 2), 16);
-        const c_g = parseInt(hex.substring(2, 2 + 2), 16);
-        const c_b = parseInt(hex.substring(4, 4 + 2), 16);
-        const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
-        return brightness < 155;
     }
 
     function showDetails(subject: any) {
@@ -110,21 +99,21 @@ export default function Schedule() {
             <Header>Fr</Header>,
         ]].concat(_schedule.rows.map((row: any) => {
             let rowData = [];
-            rowData.push(<View style={{flex: 1, borderTopWidth: 1, borderColor: "darkgrey"}}>{HourCell(row.hour.text ?? row.hour.number)}</View>);
+            rowData.push(<View style={{flex: 1, borderTopWidth: 1, borderColor: "darkgrey"}}>{HourCell(row.hour.text.replace(" ", "\n") ?? row.hour.number + ".\nStunde")}</View>);
             rowData = rowData.concat(row.subjects.map((hour: any) => {
                 return (<View style={{flex:1, borderTopWidth: 1, borderColor: "darkgrey"}}>
                     {hour.filter((item:any) => !_hiddenSubjects.find(hs => hs.id === item.id))
                         .filter((item: any) => (_showSubjectsFromOtherWeek || (item.week === undefined || item.week === _schedule.details.currentWeek.week)))
                         .map((item: any) => SubjectCell(item, _schedule))}
                 </View>);
-                //Cell(hour.map((item: any) => item.subject).join(", "))
             }));
             return rowData;
         })));
     }
 
-    if (schedule == undefined) {
+    function loadSchedule(callback?: () => void) {
         Cache.currentSession.Schedule.fetchStudentPlan().then((scheduleResult: any) => {
+            Cache.debugLog.push("Schedule fetch plan : " + JSON.stringify(scheduleResult))
             AsyncStorage.getItem('schedule.hiddenSubjects').then((r) => {
                 let data = scheduleResult.data;
                 for (const row of data.rows) {
@@ -152,11 +141,18 @@ export default function Schedule() {
 
                 setSchedule(data);
                 displaySchedule(data, r ? JSON.parse(r) : undefined);
+
+                if (callback !== undefined) {
+                    callback();
+                }
             });
         });
     }
 
-    console.log("update")
+    if (schedule == undefined) {
+        loadSchedule();
+    }
+
     return (
         <GestureHandlerRootView
             style={styles.container}
@@ -195,15 +191,8 @@ export default function Schedule() {
                 <ScrollView
                     horizontal={false}
                     style={{width: "100%"}}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 >
-                    <View style={{flexDirection:"row", alignSelf: 'flex-end', justifyContent: "center"}}>
-                        <IconButton icon={"filter"} size={24} mode={showSubjectsFromOtherWeek ? undefined : 'contained'} onPress={() => {
-                            setShowSubjectsFromOtherWeek(!showSubjectsFromOtherWeek);
-                            displaySchedule(undefined, undefined, !showSubjectsFromOtherWeek);
-                        }} />
-                        <IconButton icon={"eye-off"} size={24} onPress={() => setHiddenSubjectsModalVisible(true)} />
-                        <IconButton icon={"information"} size={24} onPress={() => Alert.alert(schedule.details.title, schedule.details.currentWeek?.fullText ?? "")} />
-                    </View>
                     <Table style={{borderRadius: 5, backgroundColor: "lightgrey"}}>
                         {
                             tableData.map((rowData: any[], index: React.Key | null | undefined) => {
