@@ -1,20 +1,22 @@
 import {Alert, FlatList, StyleSheet, View} from "react-native";
-import React, {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {ActivityIndicator, Appbar, Avatar, Badge, Divider, FAB, Icon, Searchbar, Text, TouchableRipple} from "react-native-paper";
 import Cache from "@/lib/Cache";
 import Utils from "@/lib/Utils";
 import {router, useNavigation} from "expo-router";
+import BackgroundTasker from "@/lib/BackgroundTasker";
 
 export default function Index() {
     const [hiddenChats, setHiddenChats] = useState<any[]>();
     const [visibleChats, setVisibleChats] = useState<any[]>();
     const [shownChats, setShownChats] = useState<any[]>();
-    const [hidden, setHidden] = React.useState(false);
-    const [refreshing, setRefreshing] = React.useState(false);
-    const [searchQuery, setSearchQuery] = React.useState('');
-    const [showSearchBar, setShowSearchBar] = React.useState(false);
-    const [loading, setLoading] = React.useState(true);
+    const [hidden, setHidden] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearchBar, setShowSearchBar] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [backgroundTasker, setBackgroundTasker] = useState<BackgroundTasker>();
 
     const navigation = useNavigation();
     useEffect(() => {
@@ -39,7 +41,7 @@ export default function Index() {
         });
     })
 
-    const onRefresh = React.useCallback(() => {
+    const onRefresh = useCallback(() => {
         setRefreshing(true);
 
         if (hidden) {
@@ -66,27 +68,34 @@ export default function Index() {
         }
     }, [hidden]);
 
-    const loadData = async () => {
-        const data = await Cache.currentSession.Messages.fetchChats("all");
+    if (hiddenChats === undefined && visibleChats === undefined && backgroundTasker !== undefined) {
+        Cache.currentSession.Messages._fetchChatsRaw("all").then((r: any) => {
+            backgroundTasker.executeCode(`
+                            const key = "${Cache.currentSession.sessionKey}";
+                            const data = "${r.data}";
+                            return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
+                        `, (err, data) => {
+                if (hiddenChats === undefined && visibleChats === undefined) {
+                    const parsedData = Cache.currentSession.Messages._parseRawChats(data);
 
-        const hiddenData = data.data.filter((c: any) => c.deleted === true);
-        setHiddenChats(hiddenData);
-        const visibleData = data.data.filter((c: any) => c.deleted === false);
-        setVisibleChats(visibleData);
+                    const hiddenData = parsedData.data.filter((c: any) => c.deleted === true);
+                    setHiddenChats(hiddenData);
+                    const visibleData = parsedData.data.filter((c: any) => c.deleted === false);
+                    setVisibleChats(visibleData);
 
-        setShownChats(hidden ? hiddenData : visibleData);
+                    setShownChats(hidden ? hiddenData : visibleData);
 
-        setLoading(false);
-    }
-
-    if (hiddenChats === undefined && visibleChats === undefined) {
-        loadData();
+                    setLoading(false);
+                }
+            });
+        });
     }
 
     return (
         <SafeAreaView
             style={styles.container}
         >
+            <BackgroundTasker onRef={setBackgroundTasker} dependencies={["https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"]} />
             {
                 loading ?
                     <View style={{alignItems: "center", justifyContent: "center", flex: 1}}>
@@ -121,6 +130,7 @@ export default function Index() {
                                 const chat = item.item;
 
                                 const initialsColor = Utils.stringToColour(chat.sender.name);
+                                const date = new Date(chat.date);
                                 return (
                                     <View key={chat.id}>
                                         <TouchableRipple
@@ -162,8 +172,9 @@ export default function Index() {
                                             <View style={{flexDirection: "row", flex: 1, alignItems: "flex-start"}}>
                                                 <View style={{padding: 10}}>
                                                     <Avatar.Text
-                                                        label={chat.initials ? chat.initials.toUpperCase() : ""}
+                                                        label={chat.initials ? chat.initials.toUpperCase().substring(0, 3) : ""}
                                                         size={40}
+                                                        labelStyle={{fontSize: 18}}
                                                         color={Utils.wc_hex_is_dark(initialsColor) ? "white" : "black"}
                                                         style={{backgroundColor: initialsColor}}
                                                     />
@@ -182,7 +193,9 @@ export default function Index() {
                                                         </View>
                                                         <View style={{width: "auto"}}>
                                                             <Text variant={"bodySmall"}
-                                                                  style={{fontWeight: chat.unread > 0 ? "bold": "normal"}}>{(new Date(chat.date)).toLocaleString("de")}</Text>
+                                                                  style={{fontWeight: chat.unread > 0 ? "bold": "normal"}}>
+                                                                {date.toLocaleDateString("de").split(".").map(s => s.padStart(2, "0")).join(".")}, {date.getHours().toString().padStart(2, "0")}:{date.getMinutes().toString().padStart(2, "0")} Uhr
+                                                            </Text>
                                                         </View>
                                                     </View>
                                                     <View style={{flex: 2, flexDirection: "row"}}>

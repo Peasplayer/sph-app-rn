@@ -49,7 +49,7 @@
     "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "sph-api": "^0.0.7-fixed8",
+    "sph-api": "^0.0.7-fixed9",
     "tough-cookie": "^5.1.0"
   },
   "devDependencies": {
