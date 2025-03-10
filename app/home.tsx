@@ -1,29 +1,45 @@
-import {StyleSheet, Text} from "react-native";
-import React, {useEffect} from "react";
+import {StyleSheet} from "react-native";
+import React from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {Link, useNavigation} from 'expo-router';
-import {Appbar} from "react-native-paper";
+import {router} from 'expo-router';
+import {Button, Text} from "react-native-paper";
 
 export default function Home() {
-    const navigation = useNavigation();
-    useEffect(() => {
-        navigation.setOptions({ headerShown: true, header: () => (
-            <Appbar.Header>
-                <Appbar.Content title="Startseite" />
-            </Appbar.Header>)
-        });
-    })
-
     return (
         <SafeAreaView
             style={styles.container}
         >
-            <Text>Home</Text>
-            <Link href={"/schedule"}>Schedule</Link>
-            <Link href={"/substitution"}>Substitution</Link>
-            <Link href={"/messages"}>Messages</Link>
-            <Link href={"/login"}>login</Link>
-            <Link href={"/test"}>test</Link>
+            <Text style={{margin: 15, fontWeight: "bold"}} variant={"titleLarge"}>SPH+</Text>
+            <Button
+                style={{width: "60%", margin: 5}}
+                icon="timer-sand"
+                mode={"contained"}
+                onPress={() => router.navigate("/schedule")}
+            >Stundenplan</Button>
+            <Button
+                style={{width: "60%", margin: 5}}
+                icon="book-account-outline"
+                mode={"contained"}
+                onPress={() => router.navigate("/substitution")}
+            >Vertretungsplan</Button>
+            <Button
+                style={{width: "60%", margin: 5}}
+                icon="message-text-outline"
+                mode={"contained"}
+                onPress={() => router.navigate("/messages")}
+            >Nachrichten</Button>
+            <Button
+                style={{width: "60%", margin: 5}}
+                icon="login"
+                mode={"contained"}
+                onPress={() => router.navigate("/login")}
+            >Login</Button>
+            <Button
+                style={{marginTop: 20}}
+                icon="slide"
+                mode={"elevated"}
+                onPress={() => router.navigate("/test")}
+            >Playground (Nicht benutzen)</Button>
         </SafeAreaView>
     )
 }

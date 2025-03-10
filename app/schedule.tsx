@@ -115,7 +115,7 @@ export default function Schedule() {
         Cache.currentSession.Schedule.fetchStudentPlan().then((scheduleResult: any) => {
             Cache.debugLog.push("Schedule fetch plan : " + JSON.stringify(scheduleResult))
             AsyncStorage.getItem('schedule.hiddenSubjects').then((r) => {
-                let data = scheduleResult.data;
+                let data = scheduleResult.data[0];
                 for (const row of data.rows) {
                     for (const day of row.subjects) {
                         for (const subject of day) {

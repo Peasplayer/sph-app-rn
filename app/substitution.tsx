@@ -1,9 +1,10 @@
 import {RefreshControl, ScrollView, StyleSheet, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Appbar, Card, Chip, Surface, Text, Title} from "react-native-paper";
+import {Appbar, Card, Chip, Icon, Surface, Text, Title} from "react-native-paper";
 import React, {useEffect} from "react";
 import Cache from "@/lib/Cache";
 import {router, useNavigation} from "expo-router";
+import {Row} from "react-native-reanimated-table";
 
 export default function Substitution() {
     const [subs, setSubs] = React.useState<any[]>();
@@ -63,9 +64,35 @@ export default function Substitution() {
                                         <Card key={i} style={{margin: 3}} mode={"contained"}>
                                             <Card.Content>
                                                 {entry.map((field: any, i: number) =>
-                                                    field ? (<View key={i} style={{flexDirection: "row"}}>
-                                                        <Text variant={"bodyMedium"}>{sub.content.fields[entry.indexOf(field)].name + ": "}</Text>
-                                                        <Text variant={"bodyMedium"} style={{fontWeight: "bold"}}>{field}</Text></View>) : <></>
+                                                    field ? (
+                                                        <View key={i} style={{}}>
+                                                            <Row data={[
+                                                                <View style={{flexDirection: "row", alignItems: "center"}}>
+                                                                    <View style={{marginRight: 5}}>
+                                                                        <Icon size={15} source={(() => {
+                                                                            const key = sub.content.fields[entry.indexOf(field)].key;
+                                                                            console.log("key", key)
+                                                                            if (key === "Lehrer" || key === "Vertreter")
+                                                                                return "human-male-board";
+                                                                            if (key === "Stunde")
+                                                                                return "timer-sand";
+                                                                            if (key.includes("Klasse"))
+                                                                                return "account-group";
+                                                                            if (key.includes("Fach"))
+                                                                                return "book-education-outline";
+                                                                            if (key.includes("Raum"))
+                                                                                return "map-marker-outline";
+                                                                            if (key.includes("Hinweis"))
+                                                                                return "note-outline";
+
+                                                                            return "help";
+                                                                        })()}/>
+                                                                    </View>
+                                                                    <Text variant={"bodyMedium"}>{sub.content.fields[entry.indexOf(field)].name + ": "}</Text>
+                                                                </View>,
+                                                                <Text variant={"bodyMedium"} style={{fontWeight: "bold"}}>{field}</Text>]} flexArr={[1, 2]}></Row>
+                                                        </View>
+                                                    ) : <></>
                                                 )}
                                             </Card.Content>
                                         </Card>

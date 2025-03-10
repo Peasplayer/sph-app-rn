@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "sph-app-rn",
+    "name": "SPH+",
     "slug": "sph-app-rn",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/SPH-Plus Icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,8 +13,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/SPH-Plus Book2.png",
+        "backgroundColor": "#324b58"
       },
       "package": "com.peasplayer.sphapprn"
     },
@@ -28,10 +28,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/SPH-Plus Book2.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#324b58"
         }
       ],
       [
