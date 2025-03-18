@@ -45,14 +45,14 @@ export default function Test() {
                             const key = "${Cache.currentSession.sessionKey}";
                             const data = "${data}";
                             return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
-                        `, (err, data) => console.log("task1", err, data));
+                        `, data1 => console.log("task1 s", data1), data1 => console.log("task1 e", data1));
                     });
                 }}>
                     <Text>Hello World!</Text>
                 </Button>
                 <Button onPress={async () => {
-                    backgroundTasker?.executeCode(`return CryptoJS;`, (err, data) => console.log("task1", err, data));
-                    backgroundTasker?.executeCode(`return "test123";`, (err, data) => console.log("task2", err, data));
+                    backgroundTasker?.executeCode(`return CryptoJS;`, data1 => console.log("task1 s", data1), data1 => console.log("task1 e", data1));
+                    backgroundTasker?.executeCode(`return "test123";`, data1 => console.log("task2 s", data1), data1 => console.log("task2 e", data1));
                 }}>
                     <Text>Test me!</Text>
                 </Button>
