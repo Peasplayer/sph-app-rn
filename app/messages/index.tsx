@@ -16,7 +16,7 @@ export default function Index() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchBar, setShowSearchBar] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [backgroundTasker, setBackgroundTasker] = useState<BackgroundTasker>();
+   const cryptoTasker = Cache.CryptoTasker;
 
     const navigation = useNavigation();
     useEffect(() => {
@@ -68,15 +68,28 @@ export default function Index() {
         }
     }, [hidden]);
 
-    if (hiddenChats === undefined && visibleChats === undefined && backgroundTasker !== undefined) {
-        Cache.currentSession.Messages._fetchChatsRaw("all").then((r: any) => {
-            backgroundTasker.executeCode(`
+    if (hiddenChats === undefined && visibleChats === undefined && cryptoTasker !== undefined) {
+        Cache.currentSession.Messages.fetchChats("all").then((r: any) => {
+            const hiddenData = r.data.filter((c: any) => c.deleted === true);
+            setHiddenChats(hiddenData);
+            const visibleData = r.data.filter((c: any) => c.deleted === false);
+            setVisibleChats(visibleData);
+
+            setShownChats(hidden ? hiddenData : visibleData);
+
+            setLoading(false);
+        })
+
+        /*Cache.currentSession.Messages._fetchChatsRaw("all").then((r: any) => {
+            const test = new Promise(function (resolve: (data: string) => void, reject) {
+                cryptoTasker.executeCode(`
                             const key = "${Cache.currentSession.sessionKey}";
                             const data = "${r.data}";
                             return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
-                        `, (err, data) => {
+                        `, resolve, reject);
+            }).then(r => {
                 if (hiddenChats === undefined && visibleChats === undefined) {
-                    const parsedData = Cache.currentSession.Messages._parseRawChats(data);
+                    const parsedData = Cache.currentSession.Messages._parseRawChats(r);
 
                     const hiddenData = parsedData.data.filter((c: any) => c.deleted === true);
                     setHiddenChats(hiddenData);
@@ -88,14 +101,14 @@ export default function Index() {
                     setLoading(false);
                 }
             });
-        });
+
+        });*/
     }
 
     return (
         <SafeAreaView
             style={styles.container}
         >
-            <BackgroundTasker onRef={setBackgroundTasker} dependencies={["https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"]} />
             {
                 loading ?
                     <View style={{alignItems: "center", justifyContent: "center", flex: 1}}>

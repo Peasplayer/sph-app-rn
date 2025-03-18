@@ -4,11 +4,11 @@ import {View} from "react-native";
 
 export default class BackgroundTasker extends Component<{onRef : (ref: BackgroundTasker) => void, dependencies?: string[]}> {
 	#webView: WebView|null = null;
-	#handlers: ((err?: string, data?: string) => void)[] = [];
+	#handlers: {success: (data: string) => void, error: (data: string) => void}[] = [];
 
-	executeCode(code: string, callback: (err?: string, data?: string) => void) {
+	executeCode(code: string, success: (data: string) => void, error: (data: string) => void) {
 		if (this.#webView !== null) {
-			this.#handlers.push(callback);
+			this.#handlers.push({success, error});
 			const script =
 				`try {
 					function code() { ${code} };
@@ -40,7 +40,13 @@ export default class BackgroundTasker extends Component<{onRef : (ref: Backgroun
 			</head><body></body></html>`}}
 				onMessage={(e) => {
 					const data = JSON.parse(e.nativeEvent.data);
-					this.#handlers[data.id](data.success ? undefined : data.data, !data.success ? undefined : data.data);
+					if (data.success) {
+						this.#handlers[data.id].success(data.data);
+					}
+					else {
+						this.#handlers[data.id].error(data.data);
+					}
+					//this.#handlers[data.id](data.success ? undefined : data.data, !data.success ? undefined : data.data);
 				}}
 			/>
 		</View>)
