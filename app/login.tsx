@@ -1,5 +1,5 @@
 import {Alert, StyleSheet, Text, View} from "react-native";
-import {Button, TextInput} from 'react-native-paper';
+import {Button, Surface, TextInput} from 'react-native-paper';
 // @ts-ignore
 import {Session} from "sph-api";
 // @ts-ignore
@@ -65,45 +65,47 @@ export default function Login() {
                 alignItems: 'center',
             }}
         >
-            <Text style={styles.title}>Login</Text>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    mode={"flat"}
-                    left={<TextInput.Icon icon="school" />}
-                    label="School-ID"
-                    placeholder="1234"
-                    inputMode="numeric"
-                    value={schoolId}
-                    onChangeText={text => setSchoolId(text)}
-                />
-            </View>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    mode={"flat"}
-                    left={<TextInput.Icon icon="account" />}
-                    label="Loginname"
-                    placeholder="Max.Muster oder MM"
-                    value={username}
-                    onChangeText={text => setUsername(text)}
-                />
-            </View>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    mode={"flat"}
-                    left={<TextInput.Icon icon="key" />}
-                    label="Passwort"
-                    placeholder="S1cH3re? 9aSsw0r7"
-                    secureTextEntry={true}
-                    value={password}
-                    onChangeText={text => setPassword(text)}
-                />
-            </View>
-            <Button style={styles.button} icon="login" mode="contained" onPress={handleLogin}>
-                Login
-            </Button>
+            <Surface style={{borderRadius: 15, alignItems: "center", padding: 5, paddingVertical: 15}}>
+                <Text style={styles.title}>Login</Text>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        mode={"outlined"}
+                        left={<TextInput.Icon icon="school" />}
+                        label="School-ID"
+                        placeholder="1234"
+                        inputMode="numeric"
+                        value={schoolId}
+                        onChangeText={text => setSchoolId(text)}
+                    />
+                </View>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        mode={"outlined"}
+                        left={<TextInput.Icon icon="account" />}
+                        label="Loginname"
+                        placeholder="Max.Muster oder MM"
+                        value={username}
+                        onChangeText={text => setUsername(text)}
+                    />
+                </View>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        mode={"outlined"}
+                        left={<TextInput.Icon icon="key" />}
+                        label="Passwort"
+                        placeholder="S1cH3re? 9aSsw0r7"
+                        secureTextEntry={true}
+                        value={password}
+                        onChangeText={text => setPassword(text)}
+                    />
+                </View>
+                <Button style={styles.button} icon="login" mode="contained" onPress={handleLogin}>
+                    Login
+                </Button>
+            </Surface>
         </SafeAreaView>
     );
 }
@@ -119,11 +121,9 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         flexDirection: "row",
-        backgroundColor: "lightgray",
         width: "80%",
         margin: 3,
         marginBottom: 8,
-        padding: 5,
         borderRadius: 10,
         alignItems: "center",
     },

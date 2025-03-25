@@ -6,15 +6,17 @@ import {BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, BottomS
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Cache from "@/lib/Cache";
-import {Appbar, Badge, Button, Text} from "react-native-paper";
+import {Appbar, Badge, Button, SegmentedButtons, Text, Title} from "react-native-paper";
 import Utils from "@/lib/Utils";
 import {router, useNavigation} from "expo-router";
 
 export default function Schedule() {
     const [schedule, setSchedule] = useState<any>(undefined);
+    const [selectedSchedule, setSelectedSchedule] = useState<{ type: "own"|"all"|string, date: string|undefined }>({type: "own", date: undefined});
     const [tableData, setTableData] = useState<any[]>([]);
     const [subjectDetails, setSubjectDetails] = useState<any>(undefined);
     const [hiddenSubjects, setHiddenSubjects] = useState<any[]>([]);
+    const [hiddenSubjectsVisible, setHiddenSubjectsVisible] = useState<boolean>(false);
     const [hiddenSubjectsModalVisible, setHiddenSubjectsModalVisible] = useState(false);
     const [showSubjectsFromOtherWeek, setShowSubjectsFromOtherWeek] = useState(false);
     const [refreshing, setRefreshing] = React.useState(false);
@@ -33,10 +35,16 @@ export default function Schedule() {
                 <Appbar.Content title="Stundenplan" />
                 <Appbar.Action icon={"filter"} size={24} mode={showSubjectsFromOtherWeek ? undefined : 'contained'} onPress={() => {
                     setShowSubjectsFromOtherWeek(!showSubjectsFromOtherWeek);
-                    displaySchedule(undefined, undefined, !showSubjectsFromOtherWeek);
+                    displaySchedule({showSubjectsFromOtherWeek: !showSubjectsFromOtherWeek});
                 }} />
-                <Appbar.Action icon={"eye-off"} size={24} onPress={() => setHiddenSubjectsModalVisible(true)} />
-                <Appbar.Action icon={"information"} size={24} onPress={() => Alert.alert(schedule.details.title, schedule.details.currentWeek?.fullText ?? "")} />
+                <Appbar.Action
+                    icon={hiddenSubjectsVisible ? "eye" : "eye-off"}
+                    size={24}
+                    onPress={() => {
+                        setHiddenSubjectsVisible(!hiddenSubjectsVisible);
+                        displaySchedule({hiddenSubjectsVisible: !hiddenSubjectsVisible});
+                    }}
+                    onLongPress={() => setHiddenSubjectsModalVisible(true)} />
             </Appbar.Header>)
         });
     })
@@ -58,10 +66,10 @@ export default function Schedule() {
         </View>)
     }
 
-    function SubjectCell(subject: any, _schedule: any) {
+    function SubjectCell(subject: any, index: number, _schedule: any) {
         const isThisWeek = !(subject.week !== undefined && _schedule.details?.currentWeek?.week !== subject.week);
         const color = isThisWeek ? Utils.stringToColour(subject.id) : "#3b3b3b";
-        return (<TouchableOpacity onPress={() => showDetails(subject)} style={[styles.subjectCell, {backgroundColor: color, flexDirection: "row", flexWrap: "wrap"}]} key={subject.id}>
+        return (<TouchableOpacity onPress={() => showDetails(subject)} style={[styles.subjectCell, {backgroundColor: color, flexDirection: "row", flexWrap: "wrap"}]} key={subject.id + index.toString()}>
             <Text style={[{color: Utils.wc_hex_is_dark(color) ? "white": "black"}, (subject.week ? {marginRight: 4} : {})]}>{subject.subject}{/*subject.week !== undefined ? "  [" + subject.week + "]" : ""*/}</Text>
             {subject.week ? <Badge>{subject.week}</Badge> : <></>}
         </TouchableOpacity>)
@@ -82,13 +90,29 @@ export default function Schedule() {
         const newArray = hiddenSubjects.filter(s => s.id !== subject.id);
         setHiddenSubjects(newArray)
         AsyncStorage.setItem('schedule.hiddenSubjects', JSON.stringify(newArray));
-        displaySchedule(schedule, newArray);
+        displaySchedule({hiddenSubjects: newArray});
     }
 
-    function displaySchedule(_schedule: any|undefined = undefined, _hiddenSubjects: any[]|undefined = undefined, _showSubjectsFromOtherWeek: boolean|undefined = undefined) {
-        _schedule = _schedule ?? schedule;
-        _hiddenSubjects = _hiddenSubjects ?? hiddenSubjects;
-        _showSubjectsFromOtherWeek = _showSubjectsFromOtherWeek ?? showSubjectsFromOtherWeek;
+    function displaySchedule(_options: {
+        schedule?: any,
+        hiddenSubjects?: any[],
+        showSubjectsFromOtherWeek?: boolean,
+        hiddenSubjectsVisible?: boolean
+        scheduleType?: string
+    }|undefined = undefined) {
+        const options = {
+            schedule: _options?.schedule ?? schedule,
+            hiddenSubjects: _options?.hiddenSubjects ?? hiddenSubjects,
+            showSubjectsFromOtherWeek: _options?.showSubjectsFromOtherWeek ?? showSubjectsFromOtherWeek,
+            hiddenSubjectsVisible: _options?.hiddenSubjectsVisible ?? hiddenSubjectsVisible,
+            scheduleType: _options?.scheduleType ?? selectedSchedule.type,
+        }
+
+        let scheduleData = getSelectedSchedule(options.schedule);
+
+        if (scheduleData === undefined) {
+            return;
+        }
 
         setTableData([[
             <Header></Header>,
@@ -97,56 +121,124 @@ export default function Schedule() {
             <Header>Mi</Header>,
             <Header>Do</Header>,
             <Header>Fr</Header>,
-        ]].concat(_schedule.rows.map((row: any) => {
+        ]].concat(scheduleData.rows.map((row: any) => {
             let rowData = [];
-            rowData.push(<View style={{flex: 1, borderTopWidth: 1, borderColor: "darkgrey"}}>{HourCell(row.hour.text.replace(" ", "\n") ?? row.hour.number + ".\nStunde")}</View>);
-            rowData = rowData.concat(row.subjects.map((hour: any) => {
+            rowData.push(<View style={{flex: 1, borderTopWidth: 1, borderColor: "darkgrey"}}>{HourCell(row.hour.number + (row.hour.duration > 1 ? ". - " + (row.hour.number + row.hour.duration - 1) : "") + ".\nStunde")}</View>);
+            rowData = rowData.concat(row.subjects.map((day: any) => {
                 return (<View style={{flex:1, borderTopWidth: 1, borderColor: "darkgrey"}}>
-                    {hour.filter((item:any) => !_hiddenSubjects.find(hs => hs.id === item.id))
-                        .filter((item: any) => (_showSubjectsFromOtherWeek || (item.week === undefined || item.week === _schedule.details.currentWeek.week)))
-                        .map((item: any) => SubjectCell(item, _schedule))}
+                    {day.filter((item:any) => !options.hiddenSubjects.find(hs => hs.id === item.id) || options.hiddenSubjectsVisible)
+                        .filter((item: any) => (options.showSubjectsFromOtherWeek || (item.week === undefined || item.week === scheduleData.details.currentWeek.week)))
+                        .map((item: any, index: number) => SubjectCell(item, index, scheduleData))}
                 </View>);
             }));
             return rowData;
         })));
     }
 
+    function mergeRows(rows: any[]) {
+        const mergedRows = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+
+            for (let j = i + 1; j < rows.length; j++) {
+                const nextRow = rows[j];
+                let same = true;
+                for (let k = 0; k < nextRow.subjects.length; k++) {
+                    if (row.subjects[k].length === nextRow.subjects[k].length) {
+                        for (let l = 0; l < row.subjects[k].length; l++) {
+                            if (row.subjects[k][l].id !== nextRow.subjects[k][l].id) {
+                                same = false;
+                            }
+                        }
+                    }
+                    else {
+                        same = false;
+                    }
+                }
+                if (same) {
+                    i++;
+                    if (row.hour.duration === undefined) {
+                        row.hour.duration = 1;
+                    }
+                    row.hour.duration++;
+                }
+            }
+            mergedRows.push(row);
+        }
+
+        return mergedRows;
+    }
+
+    function splitSubjects(rows: any[]) {
+        for (const row of rows) {
+            for (const day of row.subjects) {
+                for (const subject of day) {
+                    if (subject.span !== undefined && subject.span > 1) {
+                        for (let i = 1; i <= subject.span - 1; i++) {
+                            const newSubject = JSON.parse(JSON.stringify(subject));
+                            newSubject.span -= i;
+
+                            const cell = rows[rows.indexOf(row) + i].subjects[row.subjects.indexOf(day)];
+                            if (cell === undefined) {
+                                rows[rows.indexOf(row) + i].subjects[row.subjects.indexOf(day)] = [newSubject];
+                            }
+                            else {
+                                cell.push(newSubject);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return rows;
+    }
+
     function loadSchedule(callback?: () => void) {
         Cache.currentSession.Schedule.fetchStudentPlan().then((scheduleResult: any) => {
             Cache.debugLog.push("Schedule fetch plan : " + JSON.stringify(scheduleResult))
             AsyncStorage.getItem('schedule.hiddenSubjects').then((r) => {
-                let data = scheduleResult.data[0];
-                for (const row of data.rows) {
-                    for (const day of row.subjects) {
-                        for (const subject of day) {
-                            if (subject.span !== undefined && subject.span > 1) {
-                                for (let i = 1; i <= subject.span - 1; i++) {
-                                    const newSubject = JSON.parse(JSON.stringify(subject));
-                                    newSubject.span -= i;
-
-                                    const cell = data.rows[data.rows.indexOf(row) + i].subjects[row.subjects.indexOf(day)];
-                                    if (cell === undefined) {
-                                        data.rows[data.rows.indexOf(row) + i].subjects[row.subjects.indexOf(day)] = [newSubject];
-                                    }
-                                    else {
-                                        cell.push(newSubject);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                let data = scheduleResult.data;
+                if (data.own !== undefined) {
+                    data.own.rows = mergeRows(splitSubjects(data.own.rows));
+                }
+                if (data.all !== undefined) {
+                    data.all.rows = mergeRows(splitSubjects(data.all.rows));
+                }
+                if (data.unknown !== undefined) {
+                    data.unknown.rows = mergeRows(splitSubjects(data.unknown.rows));
                 }
 
                 setHiddenSubjects(r ? JSON.parse(r) : [])
 
                 setSchedule(data);
-                displaySchedule(data, r ? JSON.parse(r) : undefined);
+                displaySchedule({schedule: data, hiddenSubjects: r ? JSON.parse(r) : undefined});
 
                 if (callback !== undefined) {
                     callback();
                 }
             });
         });
+    }
+
+    function getSelectedSchedule(_schedule: any = schedule) {
+        if (_schedule === undefined)
+            return undefined;
+        if (_schedule[selectedSchedule.type] !== undefined)
+            return _schedule[selectedSchedule.type];
+
+        if (_schedule.unknown !== undefined)
+            return _schedule.unknown;
+
+        if (selectedSchedule.type === "own" && _schedule.own === undefined && _schedule.all !== undefined) {
+            setSelectedSchedule({type: "all", date: selectedSchedule.date});
+            return _schedule.all;
+        }
+
+        if (selectedSchedule.type === "all" && _schedule.all === undefined && _schedule.own !== undefined) {
+            setSelectedSchedule({type: "own", date: selectedSchedule.date});
+            return _schedule.own;
+        }
     }
 
     if (schedule == undefined) {
@@ -166,12 +258,16 @@ export default function Schedule() {
                         setHiddenSubjectsModalVisible(!hiddenSubjectsModalVisible);
                     }}
                 >
-                    <Pressable style={{backgroundColor: "black", opacity: 0.5,
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        bottom: 0,
-                        right: 0}}
+                    <Pressable
+                        style={{
+                            backgroundColor: "black",
+                            opacity: 0.5,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            bottom: 0,
+                            right: 0
+                        }}
                         onPress={() => {setHiddenSubjectsModalVisible(false)}}
                     />
                     <View style={{flex: 1, alignItems:"center", justifyContent:"center"}}>
@@ -188,6 +284,36 @@ export default function Schedule() {
                         </View>
                     </View>
                 </Modal>
+                {
+                    getSelectedSchedule() ? (<>
+                        { getSelectedSchedule().details.currentWeek !== undefined ? (
+                            <View style={{alignSelf: "flex-end"}}>
+                                <Text>{getSelectedSchedule().details.currentWeek?.fullText ?? ""}</Text>
+                            </View>
+                        ) : (<></>)}
+                        <View style={{width: "100%", padding: 5, alignItems: "center"}}>
+                            {
+                                schedule.own !== undefined && schedule.all !== undefined && true ? (
+                                    <SegmentedButtons
+                                        buttons={[{value: "own", label: "Persönlich"}, {value: "all", label: "Lerngruppe " + schedule.all.details.title.split(" ").reverse()[0]}]}
+                                        value={selectedSchedule.type}
+                                        onValueChange={v => {
+                                            setSelectedSchedule({
+                                                type: v,
+                                                date: selectedSchedule.date
+                                            });
+                                            displaySchedule({scheduleType: v});
+                                        }}
+                                    />
+                                ) : (
+                                    schedule.own !== undefined ? (<Title>Persönlich</Title>) : (
+                                        schedule.all !== undefined ? (<Title>Lerngruppe {schedule.all.details.title.split(" ").reverse()[0]}</Title>) : (<></>)
+                                    )
+                                )
+                            }
+                        </View>
+                    </>) : (<></>)
+                }
                 <ScrollView
                     horizontal={false}
                     style={{width: "100%"}}
