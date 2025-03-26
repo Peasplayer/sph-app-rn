@@ -1,11 +1,22 @@
 import {SafeAreaView} from "react-native-safe-area-context";
 import {router, useLocalSearchParams, useNavigation} from "expo-router";
 import React, {useEffect, useState} from "react";
-import {Appbar, Button, Chip, Surface, Text, TextInput} from "react-native-paper";
+import {Appbar, Button, Chip, Surface, Text, TextInput, useTheme} from "react-native-paper";
 import {ScrollView, View} from "react-native";
 import Cache from "@/lib/Cache";
 
 export default function New() {
+    const navigation = useNavigation();
+    useEffect(() => {
+        navigation.setOptions({ headerShown: true, header: () => (
+                <Appbar.Header>
+                    <Appbar.BackAction onPress={router.back} />
+                    <Appbar.Content title="Neuer Chat" />
+                </Appbar.Header>)
+        });
+    })
+    const theme = useTheme();
+
     const [receivers, setReceivers] = useState<any[]>([]);
     const [lastReceiver, setLastReceiver] = useState<any>(undefined);
     const [title, setTitle] = useState<string>("");
@@ -21,16 +32,6 @@ export default function New() {
             setLastReceiver(receiver);
         }
     }
-
-    const navigation = useNavigation();
-    useEffect(() => {
-        navigation.setOptions({ headerShown: true, header: () => (
-                <Appbar.Header>
-                    <Appbar.BackAction onPress={router.back} />
-                    <Appbar.Content title="Neuer Chat" />
-                </Appbar.Header>)
-        });
-    })
 
     function sendMessage() {
         if (canSend) {
@@ -49,7 +50,7 @@ export default function New() {
         setCanSend(flag);
     }
 
-    return (<SafeAreaView style={{flex: 1}}>
+    return (<SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
         <ScrollView>
             <Surface style={{margin: 10, padding: 5, borderRadius: 10}}>
                 <Text>Empfänger</Text>

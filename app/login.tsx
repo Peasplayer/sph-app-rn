@@ -18,19 +18,19 @@ export default function Login() {
 
     function handleLogin() {
         if (!schoolId || schoolId.trim() == "") {
-            Alert.alert("Please input a school id!");
+            Alert.alert("Fehler", "Gebe bitte eine Schul-ID an");
             return;
         }
         if (!username || username.trim() == "") {
-            Alert.alert("Please input a username!");
+            Alert.alert("Fehler", "Gebe bitte einen Benutzernamen an");
             return;
         }
         if (!password || password.trim() == "") {
-            Alert.alert("Please input a password!");
+            Alert.alert("Fehler", "Gebe bitte ein Passwort an");
             return;
         }
 
-        var session = new Session(new Crypto(), new FetchWrapper());
+        const session = new Session(new Crypto(), new FetchWrapper());
         session.login({schoolId, username, password}).then(async (result: any) => {
             Cache.debugLog.push("Login : " + JSON.stringify(result))
 

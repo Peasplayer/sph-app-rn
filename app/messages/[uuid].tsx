@@ -1,6 +1,6 @@
 import {View, StyleSheet, ScrollView, TextInput, Alert} from 'react-native';
 import {router, useLocalSearchParams, useNavigation} from "expo-router";
-import {Appbar, Chip, IconButton, Surface, Text} from 'react-native-paper';
+import {Appbar, Chip, IconButton, Surface, Text, useTheme} from 'react-native-paper';
 import {useEffect, useRef, useState} from "react";
 import Cache from "@/lib/Cache";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -16,13 +16,6 @@ import {
 import {Row} from "react-native-reanimated-table";
 
 export default function DetailsScreen() {
-    const { uuid, chat } = useLocalSearchParams();
-    const [data, setData] = useState<any>(undefined);
-    const [chatData, setChatData] = useState<any[]>([]);
-    const [text, setText] = useState<string>("");
-    const scrollViewRef = useRef<ScrollView>(null);
-    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
@@ -31,8 +24,16 @@ export default function DetailsScreen() {
                     <Appbar.Content title={data?.initialMessage?.subject} />
                     <Appbar.Action icon={"information"} onPress={() => bottomSheetModalRef.current?.present()} />
                 </Appbar.Header>)
-            });
+        });
     })
+    const theme = useTheme();
+
+    const { uuid, chat } = useLocalSearchParams();
+    const [data, setData] = useState<any>(undefined);
+    const [chatData, setChatData] = useState<any[]>([]);
+    const [text, setText] = useState<string>("");
+    const scrollViewRef = useRef<ScrollView>(null);
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     scrollViewRef.current?.scrollToEnd();
 
@@ -41,10 +42,17 @@ export default function DetailsScreen() {
         const date = new Date(message.date)
         setTimeout(() => scrollViewRef.current?.scrollToEnd(), 50);
         return <View key={message.id}>
-            <View style={[styles.message, message.ownMessage ? styles.ownMessage : styles.otherMessage]}>
-                {message.ownMessage ? <></> : <Text variant={"bodySmall"} style={{color: Utils.wc_hex_is_dark(senderColor) ? senderColor : Utils.invertHexColor(senderColor)}}>{message.sender.name}</Text>}
+            <View style={[styles.message, message.ownMessage ? (theme.dark ? styles.ownMessageDark : styles.ownMessage) : (theme.dark ? styles.otherMessageDark : styles.otherMessage)]}>
+                {message.ownMessage ? <></> :
+                    <Text
+                        variant={"bodySmall"}
+                        style={{color: theme.dark ?
+                                (Utils.wc_hex_is_dark(senderColor) ? Utils.invertHexColor(senderColor) : senderColor)
+                                : ((Utils.wc_hex_is_dark(senderColor) ? senderColor : Utils.invertHexColor(senderColor)))}}
+                    >{message.sender.name}</Text>
+                }
                 <Text variant={"bodyMedium"} selectable={true}>
-                    {(message.content.trim().match(/[\s\S]{1,100000}/) ?? []).map((s: string) => <Text>{s}</Text>)}</Text>
+                    {(message.content.trim().match(/[\s\S]{1,100000}/) ?? []).map((s: string, i: number) => <Text key={i}>{s}</Text>)}</Text>
                 <Text variant={"bodySmall"} style={{alignSelf: "flex-end", color: "darkgrey"}}>{(date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0") + " Uhr")}</Text>
             </View>
         </View>
@@ -132,7 +140,7 @@ export default function DetailsScreen() {
     return (
         <GestureHandlerRootView>
             <BottomSheetModalProvider>
-                <SafeAreaView style={styles.container}>
+                <SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
                     <View style={{flex: 1}}>
                         <ScrollView bounces={false} ref={scrollViewRef}>
                             {data !== undefined ? (chatData.map(chatEntry => {
@@ -150,7 +158,7 @@ export default function DetailsScreen() {
                                 flex: 9,
                                 padding: 10,
                                 paddingHorizontal: 10,
-                                backgroundColor: "lightgrey",
+                                backgroundColor: theme.colors.onBackground,
                                 borderRadius: 20,
                                 justifyContent: "center"
                             }}>
@@ -186,6 +194,7 @@ export default function DetailsScreen() {
                 </SafeAreaView>
                 <BottomSheetModal
                     ref={bottomSheetModalRef}
+                    backgroundStyle={{backgroundColor: theme.colors.background}}
                     backdropComponent={props => (
                         <BottomSheetBackdrop
                             {...props}
@@ -235,9 +244,6 @@ export default function DetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
     message: {
         margin: 3,
         marginHorizontal: 10,
@@ -249,8 +255,15 @@ const styles = StyleSheet.create({
     otherMessage: {
         backgroundColor: "white",
     },
+    otherMessageDark: {
+        backgroundColor: "#363636"
+    },
     ownMessage: {
         alignSelf: "flex-end",
         backgroundColor: "#D0FECF",
+    },
+    ownMessageDark: {
+        alignSelf: "flex-end",
+        backgroundColor: "#005C4B",
     }
 });

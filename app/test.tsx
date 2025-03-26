@@ -1,18 +1,20 @@
 import * as React from 'react';
 import {Modal, Pressable, ScrollView, View} from 'react-native';
-import {Button, Text} from 'react-native-paper';
+import {Button, Text, useTheme} from 'react-native-paper';
 import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 import {useState} from "react";
 import Cache from "@/lib/Cache";
 import BackgroundTasker from "@/lib/BackgroundTasker";
 
 export default function Test() {
+    const theme = useTheme();
+
     const [modalVisible, setModalVisible] = useState(false);
     const [backgroundTasker, setBackgroundTasker] = useState<BackgroundTasker>();
 
     return (
         <SafeAreaProvider>
-            <SafeAreaView style={{flex: 1}}>
+            <SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
                 <Modal
                     animationType="fade"
                     transparent={true}
@@ -59,7 +61,7 @@ export default function Test() {
                 <ScrollView style={{flex: 1}}>
                     {
                         Cache.debugLog.map((log: any, i) =>
-                            <View key={i} style={{marginVertical: 10, backgroundColor: "grey"}}>
+                            <View key={i} style={{marginVertical: 10, backgroundColor: theme.colors.surfaceVariant}}>
                                 <Text selectable={true}>{log}</Text>
                             </View>
                         )

@@ -33,16 +33,20 @@ export default function Index() {
                 router.replace("/home");
                 return;
             }
+            else {
+                router.replace("/login");
+                return;
+            }
         }
 
-        router.replace("/login");
+        setTimeout(() => router.replace("/home"), 10)
     }
     useEffect(() => {
         if (isLoading)
             startLogin();
         else
             router.replace("/home");
-    });
+    }, [isLoading]);
 
     return (
         <SafeAreaView style={styles.container}>

@@ -1,23 +1,25 @@
 import {Alert, FlatList, StyleSheet, View} from "react-native";
 import {useCallback, useEffect, useState} from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {ActivityIndicator, Appbar, Avatar, Badge, Divider, FAB, Icon, Searchbar, Text, TouchableRipple} from "react-native-paper";
+import {
+    ActivityIndicator,
+    Appbar,
+    Avatar,
+    Badge,
+    Divider,
+    FAB,
+    Icon,
+    Searchbar,
+    Text,
+    TouchableRipple,
+    useTheme
+} from "react-native-paper";
 import Cache from "@/lib/Cache";
 import Utils from "@/lib/Utils";
 import {router, useNavigation} from "expo-router";
 import BackgroundTasker from "@/lib/BackgroundTasker";
 
 export default function Index() {
-    const [hiddenChats, setHiddenChats] = useState<any[]>();
-    const [visibleChats, setVisibleChats] = useState<any[]>();
-    const [shownChats, setShownChats] = useState<any[]>();
-    const [hidden, setHidden] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [showSearchBar, setShowSearchBar] = useState(false);
-    const [loading, setLoading] = useState(true);
-   const cryptoTasker = Cache.CryptoTasker;
-
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
@@ -40,7 +42,17 @@ export default function Index() {
                 </Appbar.Header>)
         });
     })
+    const theme = useTheme();
 
+    const [hiddenChats, setHiddenChats] = useState<any[]>();
+    const [visibleChats, setVisibleChats] = useState<any[]>();
+    const [shownChats, setShownChats] = useState<any[]>();
+    const [hidden, setHidden] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearchBar, setShowSearchBar] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const cryptoTasker = Cache.CryptoTasker;
     const onRefresh = useCallback(() => {
         setRefreshing(true);
 
@@ -79,35 +91,11 @@ export default function Index() {
 
             setLoading(false);
         })
-
-        /*Cache.currentSession.Messages._fetchChatsRaw("all").then((r: any) => {
-            const test = new Promise(function (resolve: (data: string) => void, reject) {
-                cryptoTasker.executeCode(`
-                            const key = "${Cache.currentSession.sessionKey}";
-                            const data = "${r.data}";
-                            return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
-                        `, resolve, reject);
-            }).then(r => {
-                if (hiddenChats === undefined && visibleChats === undefined) {
-                    const parsedData = Cache.currentSession.Messages._parseRawChats(r);
-
-                    const hiddenData = parsedData.data.filter((c: any) => c.deleted === true);
-                    setHiddenChats(hiddenData);
-                    const visibleData = parsedData.data.filter((c: any) => c.deleted === false);
-                    setVisibleChats(visibleData);
-
-                    setShownChats(hidden ? hiddenData : visibleData);
-
-                    setLoading(false);
-                }
-            });
-
-        });*/
     }
 
     return (
         <SafeAreaView
-            style={styles.container}
+            style={{flex: 1, backgroundColor: theme.colors.background}}
         >
             {
                 loading ?
@@ -235,9 +223,6 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1
-    },
     fab: {
         position: 'absolute',
         margin: 16,
