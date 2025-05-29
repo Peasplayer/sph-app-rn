@@ -52,7 +52,6 @@ export default function Index() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchBar, setShowSearchBar] = useState(false);
     const [loading, setLoading] = useState(true);
-    const cryptoTasker = Cache.CryptoTasker;
     const onRefresh = useCallback(() => {
         setRefreshing(true);
 
@@ -80,11 +79,11 @@ export default function Index() {
         }
     }, [hidden]);
 
-    if (hiddenChats === undefined && visibleChats === undefined && cryptoTasker !== undefined) {
+    if (hiddenChats === undefined && visibleChats === undefined) {
         Cache.currentSession.Messages.fetchChats("all").then((r: any) => {
-            const hiddenData = r.data.filter((c: any) => c.deleted === true);
+            const hiddenData = r.filter((c: any) => c.deleted === true);
             setHiddenChats(hiddenData);
-            const visibleData = r.data.filter((c: any) => c.deleted === false);
+            const visibleData = r.filter((c: any) => c.deleted === false);
             setVisibleChats(visibleData);
 
             setShownChats(hidden ? hiddenData : visibleData);
@@ -200,8 +199,8 @@ export default function Index() {
                                                         </View>
                                                     </View>
                                                     <View style={{flex: 2, flexDirection: "row"}}>
-                                                        {chat.unread > 0 ? (
-                                                            <Badge style={{alignSelf:"flex-start", marginRight: 6}}>{chat.unread}</Badge>
+                                                        {chat.unread ? (
+                                                            <Badge style={{alignSelf:"flex-start", marginRight: 6}}>1</Badge>
                                                         ) : (<></>)}
                                                         <View style={{flexDirection: "row", flex: 1}}>
                                                             <Text variant={"titleMedium"} numberOfLines={1}

@@ -76,7 +76,7 @@ export default function Entries() {
 							</>}
 							description={
 								<Text>
-									{new Date(item.date).toLocaleDateString("de")}   <Text style={{fontStyle: "italic"}}>{item.hour}</Text>
+									{new Date(item.date).toLocaleDateString("de").split(".").map(s => s.padStart(2, "0")).join(".")}   <Text style={{fontStyle: "italic"}}>{item.hour}</Text>
 								</Text>
 							}
 							descriptionNumberOfLines={0}

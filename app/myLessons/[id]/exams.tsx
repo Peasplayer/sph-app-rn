@@ -36,7 +36,7 @@ export default function Exams() {
 					<View style={{backgroundColor: theme.colors.elevation.level1, borderRadius: 15, margin: 3}}>
 						<List.Item
 							title={<Title style={{marginLeft: 5}}>{item.name}</Title>}
-							right={_ => <Chip style={{alignSelf: "flex-end"}} icon={"calendar"}>{new Date(item.date).toLocaleDateString("de")}</Chip>}
+							right={_ => <Chip style={{alignSelf: "flex-end"}} icon={"calendar"}>{new Date(item.date).toLocaleDateString("de").split(".").map(s => s.padStart(2, "0")).join(".")}</Chip>}
 						/>
 					</View>
 				)

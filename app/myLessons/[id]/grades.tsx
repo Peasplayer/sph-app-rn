@@ -37,7 +37,7 @@ export default function Grades() {
 						<List.Item
 							title={<Title style={{marginLeft: 5}}>{item.name}</Title>}
 							description={<View style={{flexDirection: "row", flex: 1}}>
-								<Chip style={{alignSelf: "flex-end"}} icon={"calendar"}>{new Date(item.date).toLocaleDateString("de")}</Chip>
+								<Chip style={{alignSelf: "flex-end"}} icon={"calendar"}>{new Date(item.date).toLocaleDateString("de").split(".").map(s => s.padStart(2, "0")).join(".")}</Chip>
 								{item.note !== undefined ? <Chip style={{alignSelf: "flex-end", marginLeft: 5}} icon={"chat"}>{item.note}</Chip> : null}
 							</View>}
 							right={props =>
