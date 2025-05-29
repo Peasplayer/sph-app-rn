@@ -69,7 +69,7 @@ export default function Entries() {
 												<List.Icon {...props} color="red" icon="home" /> : null}
 
 											{item.uploads !== undefined && item.uploads?.length > 0 ?
-												<List.Icon {...props} color="orange" icon="upload" /> : null}
+												<List.Icon {...props} color={item.uploads?.filter(u => u.open).length > 0 ? "orange" : undefined} icon="upload" /> : null}
 										</> :
 										<List.Icon {...props} icon="dots-horizontal" />
 								}

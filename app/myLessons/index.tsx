@@ -43,12 +43,12 @@ export default function Index() {
 							right={props => <>
 								{
 									(item.entry?.homework !== undefined && !item.entry.homework.done
-										|| item.entry?.uploads !== undefined && item.entry?.uploads?.length > 0) ?
+										|| item.entry?.uploads !== undefined && item.entry?.uploads?.filter(u => u.open).length > 0) ?
 										<>
 											{item.entry?.homework !== undefined && !item.entry.homework.done ?
 												<List.Icon {...props} color="red" icon="home" /> : null}
 
-											{item.entry?.uploads !== undefined && item.entry?.uploads?.length > 0 ?
+											{item.entry?.uploads !== undefined && item.entry?.uploads?.filter(u => u.open).length > 0 ?
 												<List.Icon {...props} color="orange" icon="upload" /> : null}
 										</> :
 										<List.Icon {...props} icon="dots-horizontal" />
