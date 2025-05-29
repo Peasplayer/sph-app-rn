@@ -7,7 +7,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {FlatList, View} from "react-native";
 import {Grade, GradeType, GradeValue} from "sph-api/dist/MyLessons";
 
-export default function Entries() {
+export default function Grades() {
 	const navigation = useNavigation();
 	useEffect(() => {
 		navigation.setOptions({ headerShown: true, header: () => (

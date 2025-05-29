@@ -34,7 +34,7 @@ export default function Entries() {
 					<Menu.Item onPress={() => {
 						setMenuOpen(false)
 						// @ts-ignore
-						router.navigate("/myLessons/" + id + "/attendance")
+						router.navigate("/myLessons/" + id + "/attendances")
 					}} title="Anwesenheiten" leadingIcon={"format-list-bulleted"} />
 				</Menu>
 			</Appbar.Header>)

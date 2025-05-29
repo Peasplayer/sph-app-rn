@@ -6,7 +6,7 @@ import Cache from "@/lib/Cache";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {ScrollView} from "react-native";
 
-export default function Entries() {
+export default function Attendances() {
 	const navigation = useNavigation();
 	useEffect(() => {
 		navigation.setOptions({ headerShown: true, header: () => (
