@@ -21,13 +21,21 @@ export default function Entries() {
 						onDismiss={() => setMenuOpen(false)}
 						anchor={
 							<Appbar.Action icon={"dots-horizontal"} onPress={() => setMenuOpen(true)} />}>
-						<Menu.Item
-							onPress={() => {
-								setMenuOpen(false)
-								// @ts-ignore
-								router.navigate("/myLessons/" + id + "/grades")
-							}}
-							title="Leistungen" leadingIcon={"star"} />
+						<Menu.Item onPress={() => {
+							setMenuOpen(false)
+							// @ts-ignore
+							router.navigate("/myLessons/" + id + "/grades")
+						}} title="Leistungen" leadingIcon={"star"} />
+						<Menu.Item onPress={() => {
+							setMenuOpen(false)
+							// @ts-ignore
+							router.navigate("/myLessons/" + id + "/exams")
+						}} title="Leistungskontrollen" leadingIcon={"pen"} />
+						<Menu.Item onPress={() => {
+							setMenuOpen(false)
+							// @ts-ignore
+							router.navigate("/myLessons/" + id + "/attendance")
+						}} title="Anwesenheiten" leadingIcon={"format-list-bulleted"} />
 					</Menu>
 				</Appbar.Header>)
 		});
