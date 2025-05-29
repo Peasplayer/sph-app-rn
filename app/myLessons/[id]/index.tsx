@@ -1,6 +1,6 @@
 import {router, useLocalSearchParams, useNavigation} from "expo-router";
 import {useEffect, useState} from "react";
-import {Appbar, List, Text, Title, useTheme} from "react-native-paper";
+import {Appbar, List, Menu, Text, useTheme} from "react-native-paper";
 import * as React from "react";
 import Cache from "@/lib/Cache";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -8,24 +8,37 @@ import {FlatList, View} from "react-native";
 import {DetailsBook} from "sph-api/dist/MyLessons";
 
 export default function Entries() {
+	const { id } = useLocalSearchParams();
 	const navigation = useNavigation();
 	useEffect(() => {
 		navigation.setOptions({ headerShown: true, header: () => (
 				<Appbar.Header>
 					<Appbar.BackAction onPress={router.back} />
 					<Appbar.Content title={data?.title} />
+					<Menu
+						visible={menuOpen}
+						style={{marginTop: 64}}
+						onDismiss={() => setMenuOpen(false)}
+						anchor={
+							<Appbar.Action icon={"dots-horizontal"} onPress={() => setMenuOpen(true)} />}>
+						<Menu.Item
+							onPress={() => {
+								setMenuOpen(false)
+								// @ts-ignore
+								router.navigate("/myLessons/" + id + "/grades")
+							}}
+							title="Leistungen" leadingIcon={"star"} />
+					</Menu>
 				</Appbar.Header>)
 		});
 	})
 	const theme = useTheme();
 
-	const { id } = useLocalSearchParams();
 	const [data, setData] = useState<DetailsBook>();
+	const [menuOpen, setMenuOpen] = useState(false);
 
 	if (data === undefined) {
 		Cache.currentSession.MyLessons.fetchBookEntries(id).then((data: DetailsBook) => {
-			console.log("test 2")
-			console.log(data);
 			setData(data);
 		})
 	}
@@ -55,7 +68,7 @@ export default function Entries() {
 							</>}
 							description={
 								<Text>
-									{item.date}   <Text style={{fontStyle: "italic"}}>{item.hour}</Text>
+									{new Date(item.date).toLocaleDateString("de")}   <Text style={{fontStyle: "italic"}}>{item.hour}</Text>
 								</Text>
 							}
 							descriptionNumberOfLines={0}

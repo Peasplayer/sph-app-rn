@@ -75,7 +75,7 @@ export default function Index() {
 							{item.entry?.date !== undefined ?
 								<List.Item
 									key={"date"}
-									title={item.entry.date}
+									title={new Date(item.entry.date).toLocaleDateString("de")}
 									left={props => <List.Icon {...props} icon="calendar-outline" />}
 								/>
 								: null}
