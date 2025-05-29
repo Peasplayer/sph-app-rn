@@ -2,7 +2,7 @@ import {router, useNavigation} from "expo-router";
 import React, {useEffect, useState} from "react";
 import {Appbar, List, Text, useTheme} from "react-native-paper";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {FlatList, View} from "react-native";
+import {Alert, FlatList, View} from "react-native";
 import Cache from "@/lib/Cache";
 import {PreviewBook, Upload} from "sph-api/dist/MyLessons";
 
@@ -104,6 +104,15 @@ export default function Index() {
 									description={item.entry.homework.text}
 									descriptionNumberOfLines={0}
 									left={props => <List.Icon {...props} color={!item.entry?.homework?.done ? theme.colors.errorContainer : undefined} icon="home-outline" />}
+									onPress={() => {
+										Alert.alert("Bestätigung", "Soll die Hausaufgabe auf " + (!item.entry?.homework?.done ? "erledigt" : "nicht erledigt")
+											+ " gesetzt werden?", [
+												{text: 'Nein', onPress: () => {}, style: 'cancel'},
+												{text: 'Ja', onPress: () => {
+													setData(undefined);
+													Cache.currentSession.MyLessons.checkHomework(item.id, item.entry?.id, !item.entry?.homework?.done);
+													}, style: 'default'}]);
+									}}
 								/>
 								: null}
 							{item.entry?.files?.length !== undefined && item.entry?.files?.length > 0 ?

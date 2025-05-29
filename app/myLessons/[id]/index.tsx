@@ -4,7 +4,7 @@ import {Appbar, List, Menu, Text, useTheme} from "react-native-paper";
 import * as React from "react";
 import Cache from "@/lib/Cache";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {FlatList, View} from "react-native";
+import {Alert, FlatList, View} from "react-native";
 import {DetailsBook} from "sph-api/dist/MyLessons";
 
 export default function Entries() {
@@ -101,6 +101,15 @@ export default function Entries() {
 									description={item.homework.text}
 									descriptionNumberOfLines={0}
 									left={props => <List.Icon {...props} color={!item.homework?.done ? theme.colors.errorContainer : undefined} icon="home-outline" />}
+									onPress={() => {
+										Alert.alert("Bestätigung", "Soll die Hausaufgabe auf " + (!item.homework?.done ? "erledigt" : "nicht erledigt")
+											+ " gesetzt werden?", [
+											{text: 'Nein', onPress: () => {}, style: 'cancel'},
+											{text: 'Ja', onPress: () => {
+													setData(undefined);
+													Cache.currentSession.MyLessons.checkHomework(id, item.id, !item.homework?.done)
+												}, style: 'default'}]);
+									}}
 								/>
 								: null}
 							{item.files?.length > 0 ?
