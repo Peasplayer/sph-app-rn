@@ -1,4 +1,4 @@
-import {StyleSheet} from "react-native";
+import {Pressable, StyleSheet} from "react-native";
 import React from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {router} from 'expo-router';
@@ -7,11 +7,15 @@ import {Button, Text, useTheme} from "react-native-paper";
 export default function Home() {
     const theme = useTheme();
 
+    const [clicker, setClicker] = React.useState<number>(0);
+
     return (
         <SafeAreaView
             style={[styles.container, {backgroundColor: theme.colors.background}]}
         >
-            <Text style={{margin: 15, fontWeight: "bold"}} variant={"titleLarge"}>SPH+</Text>
+            <Pressable onPress={() => {setClicker(clicker + 1)}}>
+                <Text style={{margin: 15, fontWeight: "bold"}} variant={"titleLarge"}>SPH+</Text>
+            </Pressable>
             <Button
                 style={styles.button}
                 icon="timer-sand"
@@ -36,12 +40,16 @@ export default function Home() {
                 mode={"contained"}
                 onPress={() => router.navigate("/login")}
             >Login</Button>
-            <Button
-                style={{marginTop: 20}}
-                icon="slide"
-                mode={"elevated"}
-                onPress={() => router.navigate("/test")}
-            >Playground (Nicht benutzen)</Button>
+            {
+                clicker >= 10 ?
+                    <Button
+                        style={{marginTop: 20}}
+                        icon="slide"
+                        mode={"elevated"}
+                        onPress={() => router.navigate("/test")}
+                    >Playground (Nicht benutzen)</Button>
+                    : null
+            }
         </SafeAreaView>
     )
 }
