@@ -1,17 +1,19 @@
-import {Alert, StyleSheet, Text, View} from "react-native";
-import {Button, Surface, TextInput} from 'react-native-paper';
-// @ts-ignore
+import {Alert, StyleSheet, View} from "react-native";
+import {Button, Surface, TextInput, Title, useTheme} from 'react-native-paper';
 import {Session} from "sph-api";
 // @ts-ignore
 import FetchWrapper from "@/lib/FetchWrapper";
 import Crypto from "@/lib/Crypto";
 import React from "react";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
-import { router } from 'expo-router';
+import {router} from 'expo-router';
 import Cache from "@/lib/Cache";
+import SPHError, {ErrorCode} from "sph-api/dist/lib/SPHError";
 
 export default function Login() {
+    const theme = useTheme();
+
     const [schoolId, setSchoolId] = React.useState('');
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -31,30 +33,32 @@ export default function Login() {
         }
 
         const session = new Session(new Crypto(), new FetchWrapper());
-        session.login({schoolId, username, password}).then(async (result: any) => {
-            Cache.debugLog.push("Login : " + JSON.stringify(result))
+        try {
+            session.login({schoolId, username, password}).then(async () => {
+                Cache.debugLog.push("Login")
 
-            if (result.success) {
                 Cache.currentSession = session;
-                SecureStore.setItemAsync("credentials", JSON.stringify({schoolId, username, password}));
+                await SecureStore.setItemAsync("credentials", JSON.stringify({schoolId, username, password}));
 
                 router.navigate("/home");
-            }
-            else {
-                if (result.code === 1) {
+            });
+        }
+        catch (e) {
+            if (e instanceof SPHError) {
+                if (e.code === ErrorCode.CredentialsNotComplete) {
                     Alert.alert("Fehler", "Unvollständige Zugangsdaten!");
                 }
-                else if (result.code === 2) {
-                    Alert.alert("Fehler", "Das Schulportal hat folgenden Fehler zurückgegeben:\n\n" + result.data);
+                else if (e.code === ErrorCode.SPHRejected) {
+                    Alert.alert("Fehler", "Das Schulportal hat folgenden Fehler zurückgegeben:\n\n" + e.message);
                 }
-                else if (result.code === 3) {
+                else if (e.code === ErrorCode.FailedHandshake) {
                     Alert.alert("Fehler", "Ein Fehler bei der Verschlüsselung ist aufgetreten!");
                 }
-                else {
-                    Alert.alert("Fehler", "Ein Fehler ist aufgetreten!\nCode: " + result.code + "\n\n" + result.data);
-                }
             }
-        });
+            else if (e instanceof Error) {
+                Alert.alert("Fehler", "Ein Fehler ist aufgetreten!\n\n" + e.message);
+            }
+        }
     }
 
     return (
@@ -63,10 +67,11 @@ export default function Login() {
                 flex: 1,
                 justifyContent: 'center',
                 alignItems: 'center',
+                backgroundColor: theme.colors.surface
             }}
         >
             <Surface style={{borderRadius: 15, alignItems: "center", padding: 5, paddingVertical: 15}}>
-                <Text style={styles.title}>Login</Text>
+                <Title style={styles.title}>Login</Title>
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}

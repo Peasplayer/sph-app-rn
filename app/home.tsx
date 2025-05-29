@@ -24,10 +24,16 @@ export default function Home() {
             >Stundenplan</Button>
             <Button
                 style={styles.button}
-                icon="book-account-outline"
+                icon="account-arrow-left-outline"
                 mode={"contained"}
                 onPress={() => router.navigate("/substitution")}
             >Vertretungsplan</Button>
+            <Button
+                style={styles.button}
+                icon="book-education-outline"
+                mode={"contained"}
+                onPress={() => router.navigate("/myLessons")}
+            >Mein Unterricht</Button>
             <Button
                 style={styles.button}
                 icon="message-text-outline"

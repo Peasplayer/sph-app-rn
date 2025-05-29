@@ -5,12 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
-// @ts-ignore
 import {Session} from "sph-api";
 // @ts-ignore
 import FetchWrapper from "@/lib/FetchWrapper";
 import Crypto from "@/lib/Crypto";
 import Cache from "@/lib/Cache";
+import SPHError from "sph-api/dist/lib/SPHError";
 
 export default function Index() {
     const [isLoading, setLoading] = React.useState(true);
@@ -25,17 +25,18 @@ export default function Index() {
             }
 
             const session = new Session(new Crypto(), new FetchWrapper());
-            const result = await session.login(JSON.parse(cred));
-            Cache.debugLog.push("Login on index : " + JSON.stringify(result))
-            if (result.success) {
+            try {
+                const result = await session.login(JSON.parse(cred));
+                Cache.debugLog.push("Login on index : " + JSON.stringify(result))
                 Cache.currentSession = session;
 
                 router.replace("/home");
-                return;
             }
-            else {
-                router.replace("/login");
-                return;
+            catch (e) {
+                if (e instanceof SPHError) {
+                    router.replace("/login");
+                    return;
+                }
             }
         }
 

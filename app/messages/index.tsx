@@ -17,7 +17,7 @@ import {
 import Cache from "@/lib/Cache";
 import Utils from "@/lib/Utils";
 import {router, useNavigation} from "expo-router";
-import BackgroundTasker from "@/lib/BackgroundTasker";
+import {Message} from "sph-api/dist/Messages"
 
 export default function Index() {
     const navigation = useNavigation();
@@ -58,22 +58,22 @@ export default function Index() {
 
         if (hidden) {
             setTimeout(() =>
-                Cache.currentSession.Messages.fetchChats(false).then((r: any) => {
+                Cache.currentSession.Messages.fetchChats(false).then((r: Message[]) => {
                     Cache.debugLog.push("Message # fetch chats : " + JSON.stringify(r))
-                    setHiddenChats(r.data);
+                    setHiddenChats(r);
                     if (hidden) {
                         console.log("refreshing", "hidden", "setShownChats");
-                        setShownChats(r.data);
+                        setShownChats(r);
                     }
                     setRefreshing(false);
                 }), 1);
         }
         else {
-            setTimeout(() => Cache.currentSession.Messages.fetchChats(true).then((r: any) => {
+            setTimeout(() => Cache.currentSession.Messages.fetchChats(true).then((r: Message[]) => {
                 Cache.debugLog.push("Message # fetch chats : " + JSON.stringify(r))
-                setVisibleChats(r.data);
+                setVisibleChats(r);
                 if (!hidden) {
-                    setShownChats(r.data);
+                    setShownChats(r);
                 }
                 setRefreshing(false);
             }), 1)

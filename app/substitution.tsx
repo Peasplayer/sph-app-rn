@@ -6,6 +6,7 @@ import {router, useNavigation} from "expo-router";
 import {Row} from "react-native-reanimated-table";
 import {Tabs, TabScreen, TabsProvider} from "react-native-paper-tabs";
 import {SafeAreaView} from "react-native-safe-area-context";
+import {SubstitutionPlanDay} from "sph-api/dist/SubstitutionPlan";
 
 export default function Substitution() {
     const navigation = useNavigation();
@@ -27,10 +28,10 @@ export default function Substitution() {
     }, []);
 
     function loadSubs(callback?: () => void) {
-        Cache.currentSession.SubstitutionPlan.fetchSubstitutionPlan().then((r: any) => {
-            if (r.success) {
-                console.log(r.data)
-                setSubs(r.data);
+        Cache.currentSession.SubstitutionPlan.fetchSubstitutionPlan().then((r: SubstitutionPlanDay[]|undefined) => {
+            if (r !== undefined) {
+                console.log(r)
+                setSubs(r);
             }
 
             if (callback !== undefined) {
@@ -66,35 +67,42 @@ export default function Substitution() {
                                                     return (
                                                         <Card key={i} style={{margin: 3}} mode={"contained"}>
                                                             <Card.Content>
-                                                                {entry.filter((f: any) => f !== undefined).map((field: any, j: number) =>
-                                                                    <View key={j}>
-                                                                        <Row data={[
-                                                                            <View style={{flexDirection: "row", alignItems: "center"}}>
-                                                                                <View style={{marginRight: 5}}>
-                                                                                    <Icon size={15} source={(() => {
-                                                                                        const key = sub.content.fields[entry.indexOf(field)].key;
-                                                                                        if (key === "Lehrer" || key === "Vertreter")
-                                                                                            return "human-male-board";
-                                                                                        if (key === "Stunde")
-                                                                                            return "timer-sand";
-                                                                                        if (key.includes("Klasse"))
-                                                                                            return "account-group";
-                                                                                        if (key.includes("Fach"))
-                                                                                            return "book-education-outline";
-                                                                                        if (key.includes("Raum"))
-                                                                                            return "map-marker-outline";
-                                                                                        if (key.includes("Hinweis"))
-                                                                                            return "note-outline";
+                                                                {entry.map((field: any, j: number) => {
+                                                                    if (field === undefined)
+                                                                        return null;
 
-                                                                                        return "help";
-                                                                                    })()}/>
-                                                                                </View>
-                                                                                <Text variant={"bodyMedium"}>{sub.content.fields[entry.indexOf(field)].name + ": "}</Text>
-                                                                            </View>,
-                                                                            <Text variant={"bodyMedium"} style={{fontWeight: "bold"}}>{field ?? ""}</Text>]} flexArr={[1, 2]}>
-                                                                        </Row>
-                                                                    </View>
-                                                                )}
+                                                                    return (
+                                                                        <View key={j}>
+                                                                            <Row data={[
+                                                                                <View style={{flexDirection: "row", alignItems: "center"}}>
+                                                                                    <View style={{marginRight: 5}}>
+                                                                                        <Icon size={15} source={(() => {
+                                                                                            const key = sub.content.fields[j].key;
+                                                                                            if (key === "Lehrer" || key === "Vertreter")
+                                                                                                return "human-male-board";
+                                                                                            if (key === "Stunde")
+                                                                                                return "timer-sand";
+                                                                                            if (key.includes("Klasse"))
+                                                                                                return "account-group";
+                                                                                            if (key.includes("Fach"))
+                                                                                                return "book-education-outline";
+                                                                                            if (key.includes("Raum"))
+                                                                                                return "map-marker-outline";
+                                                                                            if (key.includes("Hinweis"))
+                                                                                                return "note-outline";
+                                                                                            if (key.includes("Art"))
+                                                                                                return "tag-outline";
+
+                                                                                            return "help";
+                                                                                        })()}/>
+                                                                                    </View>
+                                                                                    <Text variant={"bodyMedium"}>{sub.content.fields[j].name + ": "}</Text>
+                                                                                </View>,
+                                                                                <Text variant={"bodyMedium"} style={{fontWeight: "bold"}}>{field ?? ""}</Text>]} flexArr={[1, 2]}>
+                                                                            </Row>
+                                                                        </View>
+                                                                    );
+                                                                })}
                                                             </Card.Content>
                                                         </Card>
                                                     )

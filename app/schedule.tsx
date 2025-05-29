@@ -9,6 +9,7 @@ import Cache from "@/lib/Cache";
 import {Appbar, Badge, Button, SegmentedButtons, Text, Title, useTheme} from "react-native-paper";
 import Utils from "@/lib/Utils";
 import {router, useNavigation} from "expo-router";
+import {Plan} from "sph-api/dist/Schedule";
 
 export default function Schedule() {
     const navigation = useNavigation();
@@ -116,7 +117,7 @@ export default function Schedule() {
             scheduleType: _options?.scheduleType ?? selectedSchedule.type,
         }
 
-        let scheduleData = getSelectedSchedule(options.schedule);
+        let scheduleData = getSelectedSchedule(options.schedule, options.scheduleType);
 
         if (scheduleData === undefined) {
             return;
@@ -203,24 +204,31 @@ export default function Schedule() {
     }
 
     function loadSchedule(callback?: () => void) {
-        Cache.currentSession.Schedule.fetchStudentPlan().then((scheduleResult: any) => {
+        Cache.currentSession.Schedule.fetchStudentPlan().then((scheduleResult: {
+            own?: Plan;
+            all?: Plan;
+            unknown?: Plan
+        } | undefined) => {
+            if (scheduleResult === undefined)
+                return;
+
+            console.log(scheduleResult)
             Cache.debugLog.push("Schedule fetch plan : " + JSON.stringify(scheduleResult))
             AsyncStorage.getItem('schedule.hiddenSubjects').then((r) => {
-                let data = scheduleResult.data;
-                if (data.own !== undefined) {
-                    data.own.rows = mergeRows(splitSubjects(data.own.rows));
+                if (scheduleResult.own !== undefined) {
+                    scheduleResult.own.rows = mergeRows(splitSubjects(scheduleResult.own.rows));
                 }
-                if (data.all !== undefined) {
-                    data.all.rows = mergeRows(splitSubjects(data.all.rows));
+                if (scheduleResult.all !== undefined) {
+                    scheduleResult.all.rows = mergeRows(splitSubjects(scheduleResult.all.rows));
                 }
-                if (data.unknown !== undefined) {
-                    data.unknown.rows = mergeRows(splitSubjects(data.unknown.rows));
+                if (scheduleResult.unknown !== undefined) {
+                    scheduleResult.unknown.rows = mergeRows(splitSubjects(scheduleResult.unknown.rows));
                 }
 
                 setHiddenSubjects(r ? JSON.parse(r) : [])
 
-                setSchedule(data);
-                displaySchedule({schedule: data, hiddenSubjects: r ? JSON.parse(r) : undefined});
+                setSchedule(scheduleResult);
+                displaySchedule({schedule: scheduleResult, hiddenSubjects: r ? JSON.parse(r) : undefined});
 
                 if (callback !== undefined) {
                     callback();
@@ -229,23 +237,25 @@ export default function Schedule() {
         });
     }
 
-    function getSelectedSchedule(_schedule: any = schedule) {
+    function getSelectedSchedule(_schedule: any = schedule, scheduleType?: string) {
         if (_schedule === undefined)
             return undefined;
-        if (_schedule[selectedSchedule.type] !== undefined)
-            return _schedule[selectedSchedule.type];
+        if (_schedule[scheduleType ?? selectedSchedule.type] !== undefined)
+            return _schedule[scheduleType ?? selectedSchedule.type];
 
         if (_schedule.unknown !== undefined)
             return _schedule.unknown;
 
-        if (selectedSchedule.type === "own" && _schedule.own === undefined && _schedule.all !== undefined) {
-            setSelectedSchedule({type: "all", date: selectedSchedule.date});
-            return _schedule.all;
-        }
+        if (scheduleType === undefined) {
+            if (selectedSchedule.type === "own" && _schedule.own === undefined && _schedule.all !== undefined) {
+                setSelectedSchedule({type: "all", date: selectedSchedule.date});
+                return _schedule.all;
+            }
 
-        if (selectedSchedule.type === "all" && _schedule.all === undefined && _schedule.own !== undefined) {
-            setSelectedSchedule({type: "own", date: selectedSchedule.date});
-            return _schedule.own;
+            if (selectedSchedule.type === "all" && _schedule.all === undefined && _schedule.own !== undefined) {
+                setSelectedSchedule({type: "own", date: selectedSchedule.date});
+                return _schedule.own;
+            }
         }
     }
 
@@ -296,7 +306,7 @@ export default function Schedule() {
                     getSelectedSchedule() ? (<>
                         { getSelectedSchedule().details.currentWeek !== undefined ? (
                             <View style={{alignSelf: "flex-end"}}>
-                                <Text>{getSelectedSchedule().details.currentWeek?.fullText ?? ""}</Text>
+                                <Text>{getSelectedSchedule().details.currentWeek.fullText}</Text>
                             </View>
                         ) : (<></>)}
                         <View style={{width: "100%", padding: 5, alignItems: "center"}}>
