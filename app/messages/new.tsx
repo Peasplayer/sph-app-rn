@@ -9,10 +9,10 @@ export default function New() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-                <Appbar.Header>
-                    <Appbar.BackAction onPress={router.back} />
-                    <Appbar.Content title="Neuer Chat" />
-                </Appbar.Header>)
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={router.back} />
+                <Appbar.Content title="Neuer Chat" />
+            </Appbar.Header>)
         });
     })
     const theme = useTheme();

@@ -12,10 +12,10 @@ export default function Substitution() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-                <Appbar.Header>
-                    <Appbar.BackAction onPress={router.back} />
-                    <Appbar.Content title="Vertretungsplan" />
-                </Appbar.Header>)
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={router.back} />
+                <Appbar.Content title="Vertretungsplan" />
+            </Appbar.Header>)
         });
     })
     const theme = useTheme();

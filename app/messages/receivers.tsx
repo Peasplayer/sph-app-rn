@@ -9,10 +9,10 @@ export default function Receivers() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-                <Appbar.Header>
-                    <Appbar.BackAction onPress={router.back} />
-                    <Appbar.Content title="Empfänger" />
-                </Appbar.Header>)
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={router.back} />
+                <Appbar.Content title="Empfänger" />
+            </Appbar.Header>)
         });
     })
     const theme = useTheme();

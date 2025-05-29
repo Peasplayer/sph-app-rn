@@ -15,22 +15,22 @@ export default function Schedule() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-                <Appbar.Header>
-                    <Appbar.BackAction onPress={router.back} />
-                    <Appbar.Content title="Stundenplan" />
-                    <Appbar.Action icon={"filter"} size={24} mode={showSubjectsFromOtherWeek ? undefined : 'contained'} onPress={() => {
-                        setShowSubjectsFromOtherWeek(!showSubjectsFromOtherWeek);
-                        displaySchedule({showSubjectsFromOtherWeek: !showSubjectsFromOtherWeek});
-                    }} />
-                    <Appbar.Action
-                        icon={hiddenSubjectsVisible ? "eye" : "eye-off"}
-                        size={24}
-                        onPress={() => {
-                            setHiddenSubjectsVisible(!hiddenSubjectsVisible);
-                            displaySchedule({hiddenSubjectsVisible: !hiddenSubjectsVisible});
-                        }}
-                        onLongPress={() => setHiddenSubjectsModalVisible(true)} />
-                </Appbar.Header>)
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={router.back} />
+                <Appbar.Content title="Stundenplan" />
+                <Appbar.Action icon={"filter"} size={24} mode={showSubjectsFromOtherWeek ? undefined : 'contained'} onPress={() => {
+                    setShowSubjectsFromOtherWeek(!showSubjectsFromOtherWeek);
+                    displaySchedule({showSubjectsFromOtherWeek: !showSubjectsFromOtherWeek});
+                }} />
+                <Appbar.Action
+                    icon={hiddenSubjectsVisible ? "eye" : "eye-off"}
+                    size={24}
+                    onPress={() => {
+                        setHiddenSubjectsVisible(!hiddenSubjectsVisible);
+                        displaySchedule({hiddenSubjectsVisible: !hiddenSubjectsVisible});
+                    }}
+                    onLongPress={() => setHiddenSubjectsModalVisible(true)} />
+            </Appbar.Header>)
         });
     })
     const theme = useTheme();

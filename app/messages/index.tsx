@@ -23,23 +23,23 @@ export default function Index() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-                <Appbar.Header>
-                    <Appbar.BackAction onPress={router.back} />
-                    <Appbar.Content title="Nachrichten" />
-                    {
-                        loading ? <></> : (<>
-                            <Appbar.Action icon={hidden ? "eye-off" : "eye"} onPress={() => {
-                                setHidden(!hidden);
-                                setShownChats(!hidden ? hiddenChats : visibleChats);
-                            }} />
-                            <Appbar.Action icon={"magnify"} mode={showSearchBar ? 'contained' : undefined} onPress={() => {
-                                setShowSearchBar(!showSearchBar);
-                                if (showSearchBar)
-                                    setSearchQuery("");
-                            }} />
-                        </>)
-                    }
-                </Appbar.Header>)
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={router.back} />
+                <Appbar.Content title="Nachrichten" />
+                {
+                    loading ? <></> : (<>
+                        <Appbar.Action icon={hidden ? "eye-off" : "eye"} onPress={() => {
+                            setHidden(!hidden);
+                            setShownChats(!hidden ? hiddenChats : visibleChats);
+                        }} />
+                        <Appbar.Action icon={"magnify"} mode={showSearchBar ? 'contained' : undefined} onPress={() => {
+                            setShowSearchBar(!showSearchBar);
+                            if (showSearchBar)
+                                setSearchQuery("");
+                        }} />
+                    </>)
+                }
+            </Appbar.Header>)
         });
     })
     const theme = useTheme();

@@ -10,7 +10,7 @@ export default function Index() {
 	const navigation = useNavigation();
 	useEffect(() => {
 		navigation.setOptions({ headerShown: true, header: () => (
-			<Appbar.Header>
+			<Appbar.Header elevated>
 				<Appbar.BackAction onPress={router.back} />
 				<Appbar.Content title="Mein Unterricht" />
 			</Appbar.Header>)

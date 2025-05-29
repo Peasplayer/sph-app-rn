@@ -12,32 +12,32 @@ export default function Entries() {
 	const navigation = useNavigation();
 	useEffect(() => {
 		navigation.setOptions({ headerShown: true, header: () => (
-				<Appbar.Header>
-					<Appbar.BackAction onPress={router.back} />
-					<Appbar.Content title={data?.title} />
-					<Menu
-						visible={menuOpen}
-						style={{marginTop: 64}}
-						onDismiss={() => setMenuOpen(false)}
-						anchor={
-							<Appbar.Action icon={"dots-horizontal"} onPress={() => setMenuOpen(true)} />}>
-						<Menu.Item onPress={() => {
-							setMenuOpen(false)
-							// @ts-ignore
-							router.navigate("/myLessons/" + id + "/grades")
-						}} title="Leistungen" leadingIcon={"star"} />
-						<Menu.Item onPress={() => {
-							setMenuOpen(false)
-							// @ts-ignore
-							router.navigate("/myLessons/" + id + "/exams")
-						}} title="Leistungskontrollen" leadingIcon={"pen"} />
-						<Menu.Item onPress={() => {
-							setMenuOpen(false)
-							// @ts-ignore
-							router.navigate("/myLessons/" + id + "/attendance")
-						}} title="Anwesenheiten" leadingIcon={"format-list-bulleted"} />
-					</Menu>
-				</Appbar.Header>)
+			<Appbar.Header elevated>
+				<Appbar.BackAction onPress={router.back} />
+				<Appbar.Content title={data?.title} />
+				<Menu
+					visible={menuOpen}
+					style={{marginTop: 64}}
+					onDismiss={() => setMenuOpen(false)}
+					anchor={
+						<Appbar.Action icon={"dots-horizontal"} onPress={() => setMenuOpen(true)} />}>
+					<Menu.Item onPress={() => {
+						setMenuOpen(false)
+						// @ts-ignore
+						router.navigate("/myLessons/" + id + "/grades")
+					}} title="Leistungen" leadingIcon={"star"} />
+					<Menu.Item onPress={() => {
+						setMenuOpen(false)
+						// @ts-ignore
+						router.navigate("/myLessons/" + id + "/exams")
+					}} title="Leistungskontrollen" leadingIcon={"pen"} />
+					<Menu.Item onPress={() => {
+						setMenuOpen(false)
+						// @ts-ignore
+						router.navigate("/myLessons/" + id + "/attendance")
+					}} title="Anwesenheiten" leadingIcon={"format-list-bulleted"} />
+				</Menu>
+			</Appbar.Header>)
 		});
 	})
 	const theme = useTheme();

@@ -19,11 +19,11 @@ export default function DetailsScreen() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-                <Appbar.Header>
-                    <Appbar.BackAction onPress={router.back} />
-                    <Appbar.Content title={data?.initialMessage?.subject} />
-                    <Appbar.Action icon={"information"} onPress={() => bottomSheetModalRef.current?.present()} />
-                </Appbar.Header>)
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={router.back} />
+                <Appbar.Content title={data?.initialMessage?.subject} />
+                <Appbar.Action icon={"information"} onPress={() => bottomSheetModalRef.current?.present()} />
+            </Appbar.Header>)
         });
     })
     const theme = useTheme();
