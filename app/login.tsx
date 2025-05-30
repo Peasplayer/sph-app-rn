@@ -38,16 +38,13 @@ export default function Login() {
             return;
         }
 
-        try {
-            Cache.currentSession.login({schoolId: JSON.parse(school as string).id, username, password}).then(async () => {
-                Cache.debugLog.push("Login")
+        Cache.currentSession.login({schoolId: JSON.parse(school as string).id, username, password}).then(async () => {
+            Cache.debugLog.push("Login")
 
-                await SecureStore.setItemAsync("credentials", JSON.stringify({schoolId: JSON.parse(school as string).id, username, password}));
+            await SecureStore.setItemAsync("credentials", JSON.stringify({schoolId: JSON.parse(school as string).id, username, password}));
 
-                router.navigate("/home");
-            });
-        }
-        catch (e) {
+            router.navigate("/home");
+        }).catch((e: Error) => {
             if (e instanceof SPHError) {
                 if (e.code === ErrorCode.CredentialsNotComplete) {
                     Alert.alert("Fehler", "Unvollständige Zugangsdaten!");
@@ -59,10 +56,10 @@ export default function Login() {
                     Alert.alert("Fehler", "Ein Fehler bei der Verschlüsselung ist aufgetreten!");
                 }
             }
-            else if (e instanceof Error) {
+            else {
                 Alert.alert("Fehler", "Ein Fehler ist aufgetreten!\n\n" + e.message);
             }
-        }
+        });
     }
 
     return (
@@ -81,6 +78,7 @@ export default function Login() {
                         <Chip
                             icon={"school"}
                             style={{flex: 1, justifyContent: "center"}}
+                            onPress={() => router.navigate("/schoolList")}
                         >{JSON.parse(school as string).name}</Chip> :
                         <Button icon={"school"} mode={"contained"} onPress={() => router.navigate("/schoolList")}>Schule auswählen...</Button>}
                 </View>
