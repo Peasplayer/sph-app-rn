@@ -1,6 +1,6 @@
 import {RefreshControl, ScrollView, View} from "react-native";
-import {Appbar, Card, Chip, Icon, Surface, Text, useTheme} from "react-native-paper";
-import React, {useEffect} from "react";
+import {ActivityIndicator, Appbar, Card, Chip, Icon, Surface, Text, useTheme} from "react-native-paper";
+import React, {useCallback, useEffect, useState} from "react";
 import Cache from "@/lib/Cache";
 import {router, useNavigation} from "expo-router";
 import {Row} from "react-native-reanimated-table";
@@ -12,17 +12,18 @@ export default function Substitution() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-            <Appbar.Header elevated>
+            loading ? <></> : <Appbar.Header elevated>
                 <Appbar.BackAction onPress={router.back} />
                 <Appbar.Content title="Vertretungsplan" />
             </Appbar.Header>)
         });
     })
     const theme = useTheme();
+    const [loading, setLoading] = useState(false);
 
-    const [subs, setSubs] = React.useState<any[]>();
-    const [refreshing, setRefreshing] = React.useState(false);
-    const onRefresh = React.useCallback(() => {
+    const [subs, setSubs] = useState<any[]>();
+    const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = useCallback(() => {
         setRefreshing(true);
         loadSubs(() => setRefreshing(false));
     }, []);
@@ -33,6 +34,8 @@ export default function Substitution() {
                 console.log(r)
                 setSubs(r);
             }
+
+            setLoading(false);
 
             if (callback !== undefined) {
                 callback();
@@ -121,15 +124,19 @@ export default function Substitution() {
         )
     }
     else {
-        if (subs === undefined) {
+        if (subs === undefined && !loading) {
+            setLoading(true);
             loadSubs();
         }
 
         return (
             <SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
-                <Surface style={{margin: 5, padding: 5, borderRadius: 15, alignItems: "center", flex: 1}}>
+                { loading ? <View style={{alignItems: "center", justifyContent: "center", flex: 1}}>
+                    <Text variant={"titleLarge"}>Lädt...</Text>
+                    <ActivityIndicator animating={true} size={"large"} />
+                </View> : <Surface style={{margin: 5, padding: 5, borderRadius: 15, alignItems: "center", flex: 1}}>
                     <Text variant={"bodyMedium"} style={{fontStyle: "italic"}}>Keine Einträge!</Text>
-                </Surface>
+                </Surface>}
             </SafeAreaView>
         )
     }

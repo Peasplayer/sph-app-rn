@@ -6,7 +6,7 @@ import {BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, BottomS
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Cache from "@/lib/Cache";
-import {Appbar, Badge, Button, SegmentedButtons, Text, Title, useTheme} from "react-native-paper";
+import {ActivityIndicator, Appbar, Badge, Button, SegmentedButtons, Text, Title, useTheme} from "react-native-paper";
 import Utils from "@/lib/Utils";
 import {router, useNavigation} from "expo-router";
 import {Plan} from "sph-api/dist/Schedule";
@@ -15,7 +15,7 @@ export default function Schedule() {
     const navigation = useNavigation();
     useEffect(() => {
         navigation.setOptions({ headerShown: true, header: () => (
-            <Appbar.Header elevated>
+            loading ? <></> : <Appbar.Header elevated>
                 <Appbar.BackAction onPress={router.back} />
                 <Appbar.Content title="Stundenplan" />
                 <Appbar.Action icon={"filter"} size={24} mode={showSubjectsFromOtherWeek ? undefined : 'contained'} onPress={() => {
@@ -34,6 +34,7 @@ export default function Schedule() {
         });
     })
     const theme = useTheme();
+    const [loading, setLoading] = useState(false);
 
     const [schedule, setSchedule] = useState<any>(undefined);
     const [selectedSchedule, setSelectedSchedule] = useState<{ type: "own"|"all"|string, date: string|undefined }>({type: "own", date: undefined});
@@ -230,6 +231,7 @@ export default function Schedule() {
                 setSchedule(scheduleResult);
                 displaySchedule({schedule: scheduleResult, hiddenSubjects: r ? JSON.parse(r) : undefined});
 
+                setLoading(false);
                 if (callback !== undefined) {
                     callback();
                 }
@@ -259,7 +261,8 @@ export default function Schedule() {
         }
     }
 
-    if (schedule == undefined) {
+    if (schedule == undefined && !loading) {
+        setLoading(true);
         loadSchedule();
     }
 
@@ -267,117 +270,123 @@ export default function Schedule() {
         <GestureHandlerRootView
             style={[styles.container, {backgroundColor: theme.colors.background}]}
         >
-            <BottomSheetModalProvider>
-                <Modal
-                    animationType="fade"
-                    transparent={true}
-                    visible={hiddenSubjectsModalVisible}
-                    onRequestClose={() => {
-                        setHiddenSubjectsModalVisible(!hiddenSubjectsModalVisible);
-                    }}
-                >
-                    <Pressable
-                        style={{
-                            backgroundColor: "black",
-                            opacity: 0.3,
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            bottom: 0,
-                            right: 0
+            { loading ?
+                <View style={{alignItems: "center", justifyContent: "center", flex: 1}}>
+                    <Text variant={"titleLarge"}>Lädt...</Text>
+                    <ActivityIndicator animating={true} size={"large"} />
+                </View> :
+                <BottomSheetModalProvider>
+                    <Modal
+                        animationType="fade"
+                        transparent={true}
+                        visible={hiddenSubjectsModalVisible}
+                        onRequestClose={() => {
+                            setHiddenSubjectsModalVisible(!hiddenSubjectsModalVisible);
                         }}
-                        onPress={() => {setHiddenSubjectsModalVisible(false)}}
-                    />
-                    <View style={{flex: 1, alignItems:"center", justifyContent:"center"}}>
-                        <View style={{backgroundColor: theme.colors.background, opacity: 1, alignSelf: "center", padding: 20, width:"80%", maxHeight: "90%"}}>
-                            <Text style={{fontWeight: "bold", fontSize: 24}}>Ausgeblendete Kurse</Text>
-                            <Text style={{textDecorationLine: "underline", fontSize: 18}}>(Anklicken zum einblenden)</Text>
-                            <ScrollView>
-                                {hiddenSubjects.length > 0 ?
-                                    (hiddenSubjects.map((subject: any) => {
-                                        return (<TouchableOpacity style={{flexDirection: "row"}} onPress={() => showSubject(subject)} key={subject.id}><Text style={{fontWeight: "bold"}}>{subject.subject}</Text><Text> bei {subject.teacher}</Text></TouchableOpacity>)
-                                    }))
-                                    : (<Text style={{fontStyle: "italic"}}>Noch nichts ausgeblendet :)</Text>)}
-                            </ScrollView>
-                        </View>
-                    </View>
-                </Modal>
-                {
-                    getSelectedSchedule() ? (<>
-                        { getSelectedSchedule().details.currentWeek !== undefined ? (
-                            <View style={{alignSelf: "flex-end"}}>
-                                <Text>{getSelectedSchedule().details.currentWeek.fullText}</Text>
+                    >
+                        <Pressable
+                            style={{
+                                backgroundColor: "black",
+                                opacity: 0.3,
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                bottom: 0,
+                                right: 0
+                            }}
+                            onPress={() => {setHiddenSubjectsModalVisible(false)}}
+                        />
+                        <View style={{flex: 1, alignItems:"center", justifyContent:"center"}}>
+                            <View style={{backgroundColor: theme.colors.background, opacity: 1, alignSelf: "center", padding: 20, width:"80%", maxHeight: "90%"}}>
+                                <Text style={{fontWeight: "bold", fontSize: 24}}>Ausgeblendete Kurse</Text>
+                                <Text style={{textDecorationLine: "underline", fontSize: 18}}>(Anklicken zum einblenden)</Text>
+                                <ScrollView>
+                                    {hiddenSubjects.length > 0 ?
+                                        (hiddenSubjects.map((subject: any) => {
+                                            return (<TouchableOpacity style={{flexDirection: "row"}} onPress={() => showSubject(subject)} key={subject.id}><Text style={{fontWeight: "bold"}}>{subject.subject}</Text><Text> bei {subject.teacher}</Text></TouchableOpacity>)
+                                        }))
+                                        : (<Text style={{fontStyle: "italic"}}>Noch nichts ausgeblendet :)</Text>)}
+                                </ScrollView>
                             </View>
-                        ) : (<></>)}
-                        <View style={{width: "100%", padding: 5, alignItems: "center"}}>
-                            {
-                                schedule.own !== undefined && schedule.all !== undefined ? (
-                                    <SegmentedButtons
-                                        buttons={[{value: "own", label: "Persönlich"}, {value: "all", label: "Lerngruppe " + schedule.all.details.title.split(" ").reverse()[0]}]}
-                                        value={selectedSchedule.type}
-                                        onValueChange={v => {
-                                            setSelectedSchedule({
-                                                type: v,
-                                                date: selectedSchedule.date
-                                            });
-                                            displaySchedule({scheduleType: v});
-                                        }}
-                                    />
-                                ) : (
-                                    schedule.own !== undefined ? (<Title>Persönlich</Title>) : (
-                                        schedule.all !== undefined ? (<Title>Lerngruppe {schedule.all.details.title.split(" ").reverse()[0]}</Title>) : (<></>)
-                                    )
-                                )
-                            }
                         </View>
-                    </>) : (<></>)
-                }
-                <ScrollView
-                    horizontal={false}
-                    style={{width: "100%"}}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                >
-                    <Table style={{borderRadius: 5, backgroundColor: theme.colors.surfaceVariant}}>
-                        {
-                            tableData.map((rowData: any[], index: React.Key | null | undefined) => {
-                                return (
-                                    <Row
-                                        key={index}
-                                        data={rowData}
-                                    />
-                                )
-                            })
-                        }
-                    </Table>
-                </ScrollView>
-                <BottomSheetModal
-                    ref={bottomSheetModalRef}
-                    backgroundStyle={{backgroundColor: theme.colors.background}}
-                    backdropComponent={props => (
-                        <BottomSheetBackdrop
-                            {...props}
-                            opacity={0.3}
-                            enableTouchThrough={false}
-                            appearsOnIndex={0}
-                            disappearsOnIndex={-1}
-                            style={[{ backgroundColor: 'black' }, StyleSheet.absoluteFillObject]}
-                        />)}
-                >
-                    <BottomSheetView style={{flexDirection: "column", alignContent: "center"}}>
-                        <Text style={{fontWeight: "bold", fontSize: 24, alignSelf: "center"}}>{subjectDetails?.subject}</Text>
-                        {subjectDetails?.teacher ? <Row data={[<Text style={{alignSelf: "flex-end"}}>bei </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.teacher}</Text>]} /> : <></>}
-                        {subjectDetails?.room ? <Row data={[<Text style={{alignSelf: "flex-end"}}>in </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.room}</Text>]} /> : <></>}
-                        {subjectDetails?.group ? <Row data={[<Text style={{alignSelf: "flex-end"}}>bei Gruppe </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.group}</Text>]} /> : <></>}
-                        {subjectDetails?.week ? <Row data={[<Text style={{alignSelf: "flex-end"}}>nur in Woche </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.week}</Text>]} /> : <></>}
-                        <Button style={{marginRight: 5, marginBottom: 5, alignSelf:"flex-end"}} icon="eye-off" mode="contained" onPress={() => {
-                            hideSubject(subjectDetails);
-                            bottomSheetModalRef.current?.close();
-                        }}>
-                            Ausblenden
-                        </Button>
-                    </BottomSheetView>
-                </BottomSheetModal>
-            </BottomSheetModalProvider>
+                    </Modal>
+                    {
+                        getSelectedSchedule() ? (<>
+                            { getSelectedSchedule().details.currentWeek !== undefined ? (
+                                <View style={{alignSelf: "flex-end"}}>
+                                    <Text>{getSelectedSchedule().details.currentWeek.fullText}</Text>
+                                </View>
+                            ) : (<></>)}
+                            <View style={{width: "100%", padding: 5, alignItems: "center"}}>
+                                {
+                                    schedule.own !== undefined && schedule.all !== undefined ? (
+                                        <SegmentedButtons
+                                            buttons={[{value: "own", label: "Persönlich"}, {value: "all", label: "Lerngruppe " + schedule.all.details.title.split(" ").reverse()[0]}]}
+                                            value={selectedSchedule.type}
+                                            onValueChange={v => {
+                                                setSelectedSchedule({
+                                                    type: v,
+                                                    date: selectedSchedule.date
+                                                });
+                                                displaySchedule({scheduleType: v});
+                                            }}
+                                        />
+                                    ) : (
+                                        schedule.own !== undefined ? (<Title>Persönlich</Title>) : (
+                                            schedule.all !== undefined ? (<Title>Lerngruppe {schedule.all.details.title.split(" ").reverse()[0]}</Title>) : (<></>)
+                                        )
+                                    )
+                                }
+                            </View>
+                        </>) : (<></>)
+                    }
+                    <ScrollView
+                        horizontal={false}
+                        style={{width: "100%"}}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                    >
+                        <Table style={{borderRadius: 5, backgroundColor: theme.colors.surfaceVariant}}>
+                            {
+                                tableData.map((rowData: any[], index: React.Key | null | undefined) => {
+                                    return (
+                                        <Row
+                                            key={index}
+                                            data={rowData}
+                                        />
+                                    )
+                                })
+                            }
+                        </Table>
+                    </ScrollView>
+                    <BottomSheetModal
+                        ref={bottomSheetModalRef}
+                        backgroundStyle={{backgroundColor: theme.colors.background}}
+                        backdropComponent={props => (
+                            <BottomSheetBackdrop
+                                {...props}
+                                opacity={0.3}
+                                enableTouchThrough={false}
+                                appearsOnIndex={0}
+                                disappearsOnIndex={-1}
+                                style={[{ backgroundColor: 'black' }, StyleSheet.absoluteFillObject]}
+                            />)}
+                    >
+                        <BottomSheetView style={{flexDirection: "column", alignContent: "center"}}>
+                            <Text style={{fontWeight: "bold", fontSize: 24, alignSelf: "center"}}>{subjectDetails?.subject}</Text>
+                            {subjectDetails?.teacher ? <Row data={[<Text style={{alignSelf: "flex-end"}}>bei </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.teacher}</Text>]} /> : <></>}
+                            {subjectDetails?.room ? <Row data={[<Text style={{alignSelf: "flex-end"}}>in </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.room}</Text>]} /> : <></>}
+                            {subjectDetails?.group ? <Row data={[<Text style={{alignSelf: "flex-end"}}>bei Gruppe </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.group}</Text>]} /> : <></>}
+                            {subjectDetails?.week ? <Row data={[<Text style={{alignSelf: "flex-end"}}>nur in Woche </Text>, <Text style={{fontWeight: "bold"}}>{subjectDetails.week}</Text>]} /> : <></>}
+                            <Button style={{marginRight: 5, marginBottom: 5, alignSelf:"flex-end"}} icon="eye-off" mode="contained" onPress={() => {
+                                hideSubject(subjectDetails);
+                                bottomSheetModalRef.current?.close();
+                            }}>
+                                Ausblenden
+                            </Button>
+                        </BottomSheetView>
+                    </BottomSheetModal>
+                </BottomSheetModalProvider>
+            }
         </GestureHandlerRootView>
     )
 }
