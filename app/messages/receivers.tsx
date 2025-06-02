@@ -1,9 +1,10 @@
 import {SafeAreaView} from "react-native-safe-area-context";
 import {router, useNavigation} from "expo-router";
-import React, {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {Appbar, Chip, Searchbar, useTheme} from "react-native-paper";
 import {FlatList, View} from "react-native";
 import Cache from "@/lib/Cache";
+import {Receiver} from "sph-api/dist/Messages";
 
 export default function Receivers() {
     const navigation = useNavigation();
@@ -17,17 +18,15 @@ export default function Receivers() {
     })
     const theme = useTheme();
 
-    const [searchQuery, setSearchQuery] = React.useState('');
-    const [searched, setSearched] = React.useState(true);
-    const [results, setResults] = React.useState([]);
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [searched, setSearched] = useState<boolean>(true);
+    const [results, setResults] = useState<Receiver[]>([]);
 
     if (searchQuery.length >= 2 && !searched) {
-        Cache.currentSession.Messages.searchReceiver(searchQuery).then((r: any) => {
+        Cache.currentSession.Messages.searchReceiver(searchQuery).then((r: Receiver[]) => {
             Cache.debugLog.push("Message # search receiver : " + JSON.stringify(r))
-            if (r.success) {
-                setResults(r.data.items);
-                setSearched(true);
-            }
+            setResults(r);
+            setSearched(true);
         })
     }
 

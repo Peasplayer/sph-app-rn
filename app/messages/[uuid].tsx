@@ -14,6 +14,7 @@ import {
     BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import {Row} from "react-native-reanimated-table";
+import {ChatDetails} from "sph-api/dist/Messages";
 
 export default function DetailsScreen() {
     const navigation = useNavigation();
@@ -62,12 +63,8 @@ export default function DetailsScreen() {
         if (text.length === 0)
             return;
 
-        Cache.currentSession.Messages.replyToChat(uuid, text).then((r: any) => {
+        Cache.currentSession.Messages.replyToChat(uuid, text).then((r: string) => {
             Cache.debugLog.push("Message # reply : " + JSON.stringify(r))
-            if (!r.success) {
-               Alert.alert("Fehler", "Etwas lief schief beim antworten!");
-               return;
-            }
 
             setText("");
 
@@ -75,59 +72,59 @@ export default function DetailsScreen() {
             if (new Date(_chat.findLast(i => i.type === "message").data.date).toLocaleDateString("de", {timeZone: "Europe/Berlin"})
                 !== new Date(Date.now()).toLocaleDateString("de", {timeZone: "Europe/Berlin"}))
                 _chat.push({type: "date", data: "Heute"});
-            _chat.push({type: "message", data: {sender: {name: ""}, date: Date.now(), id: r.data, ownMessage: true, content: text}});
+            _chat.push({type: "message", data: {sender: {name: ""}, date: Date.now(), id: r, ownMessage: true, content: text}});
             setChatData(_chat);
 
             setTimeout(loadChat, 1000);
-        });
+        }).catch((e: Error) => {
+            Alert.alert("Fehler", "Etwas lief schief beim antworten!\n\n" + e.message);
+        })
     }
 
     function loadChat() {
-        Cache.currentSession.Messages.fetchChatMessages(uuid).then((r: any) => {
+        Cache.currentSession.Messages.fetchChatMessages(uuid).then((r: ChatDetails) => {
             console.log("fetched chat");
             Cache.debugLog.push("Messages# fetch chat messages : " + JSON.stringify(r))
-            if (r.success) {
-                try {
-                    setData(r.data);
+            try {
+                setData(r);
 
-                    const _chat: any[] = [];
-                    _chat.push({type: "message", data: r.data.initialMessage});
-                    r.data.initialMessage.replies.forEach((reply: any) => _chat.push({type: "message", data: reply}));
+                const _chat: any[] = [];
+                _chat.push({type: "message", data: r.initialMessage});
+                r.initialMessage.replies?.forEach((reply: any) => _chat.push({type: "message", data: reply}));
 
-                    const todaysDateString = new Date(Date.now()).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
-                    const yesterdaysDateString = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
-                    _chat.filter(m => m.type === "message").forEach((message: any) => {
-                        const index = _chat.indexOf(message);
-                        if (index === 0) {
-                            const dateString = (new Date(message.data.date)).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
+                const todaysDateString = new Date(Date.now()).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
+                const yesterdaysDateString = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
+                _chat.filter(m => m.type === "message").forEach((message: any) => {
+                    const index = _chat.indexOf(message);
+                    if (index === 0) {
+                        const dateString = (new Date(message.data.date)).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
+                        if (dateString === todaysDateString)
+                            _chat.splice(0, 0, {type: "date", data: "Heute"})
+                        else if (dateString === yesterdaysDateString)
+                            _chat.splice(0, 0, {type: "date", data: "Gestern"})
+                        else
+                            _chat.splice(0, 0, {type: "date", data: dateString})
+                    }
+                    else {
+                        const dateString = (new Date(message.data.date)).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
+                        const previousDateString = (new Date(_chat[index - 1].data.date)).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
+                        if (dateString !== previousDateString) {
                             if (dateString === todaysDateString)
-                                _chat.splice(0, 0, {type: "date", data: "Heute"})
+                                _chat.splice(index, 0, {type: "date", data: "Heute"})
                             else if (dateString === yesterdaysDateString)
-                                _chat.splice(0, 0, {type: "date", data: "Gestern"})
+                                _chat.splice(index, 0, {type: "date", data: "Gestern"})
                             else
-                                _chat.splice(0, 0, {type: "date", data: dateString})
+                                _chat.splice(index, 0, {type: "date", data: dateString})
                         }
-                        else {
-                            const dateString = (new Date(message.data.date)).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
-                            const previousDateString = (new Date(_chat[index - 1].data.date)).toLocaleDateString("de", {timeZone: "Europe/Berlin"});
-                            if (dateString !== previousDateString) {
-                                if (dateString === todaysDateString)
-                                    _chat.splice(index, 0, {type: "date", data: "Heute"})
-                                else if (dateString === yesterdaysDateString)
-                                    _chat.splice(index, 0, {type: "date", data: "Gestern"})
-                                else
-                                    _chat.splice(index, 0, {type: "date", data: dateString})
-                            }
-                        }
-                    })
+                    }
+                })
 
-                    setChatData(_chat);
-                }
-                catch (error) {
-                    console.log("err in chat load", error);
-                }
+                setChatData(_chat);
             }
-        });
+            catch (error) {
+                console.log("err in chat load", error);
+            }
+        }).catch((e: Error) => console.log(e));
     }
 
     if (data === undefined) {

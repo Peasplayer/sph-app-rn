@@ -35,12 +35,10 @@ export default function New() {
 
     function sendMessage() {
         if (canSend) {
-            Cache.currentSession.Messages.createNewChat(receivers.map(r => r.id), title, content).then((r: any) => {
+            Cache.currentSession.Messages.createNewChat(receivers.map(r => r.id), title, content).then((r: string) => {
                 Cache.debugLog.push("Message # create chat : " + JSON.stringify(r))
-                if (r.success) {
-                    // @ts-ignore
-                    router.replace("/messages/" + r.data);
-                }
+                // @ts-ignore
+                router.replace("/messages/" + r.data);
             })
         }
     }

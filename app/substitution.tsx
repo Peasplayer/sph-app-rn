@@ -21,7 +21,7 @@ export default function Substitution() {
     const theme = useTheme();
     const [loading, setLoading] = useState(false);
 
-    const [subs, setSubs] = useState<any[]>();
+    const [subs, setSubs] = useState<SubstitutionPlanDay[]|undefined>(undefined);
     const [refreshing, setRefreshing] = useState(false);
     const onRefresh = useCallback(() => {
         setRefreshing(true);
@@ -29,7 +29,7 @@ export default function Substitution() {
     }, []);
 
     function loadSubs(callback?: () => void) {
-        Cache.currentSession.SubstitutionPlan.fetchSubstitutionPlan().then((r: SubstitutionPlanDay[]|undefined) => {
+        Cache.currentSession.SubstitutionPlan.fetchSubstitutionPlan().then((r: SubstitutionPlanDay[]) => {
             if (r !== undefined) {
                 console.log(r)
                 setSubs(r);

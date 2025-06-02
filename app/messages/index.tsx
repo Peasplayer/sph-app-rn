@@ -80,10 +80,10 @@ export default function Index() {
     }, [hidden]);
 
     if (hiddenChats === undefined && visibleChats === undefined) {
-        Cache.currentSession.Messages.fetchChats("all").then((r: any) => {
-            const hiddenData = r.filter((c: any) => c.deleted === true);
+        Cache.currentSession.Messages.fetchChats("all").then((r: Message[]) => {
+            const hiddenData = r.filter(c => c.deleted === true);
             setHiddenChats(hiddenData);
-            const visibleData = r.filter((c: any) => c.deleted === false);
+            const visibleData = r.filter(c => c.deleted === false);
             setVisibleChats(visibleData);
 
             setShownChats(hidden ? hiddenData : visibleData);

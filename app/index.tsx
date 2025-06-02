@@ -1,19 +1,18 @@
-import {StyleSheet, View} from "react-native";
-import {ActivityIndicator, Text} from "react-native-paper";
-import React, {useEffect} from "react";
+import {Alert, StyleSheet} from "react-native";
+import {ActivityIndicator, Text, useTheme} from "react-native-paper";
+import {useEffect, useState} from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
 import {Session} from "sph-api";
-// @ts-ignore
 import FetchWrapper from "@/lib/FetchWrapper";
 import Crypto from "@/lib/Crypto";
 import Cache from "@/lib/Cache";
-import SPHError from "sph-api/dist/lib/SPHError";
 
 export default function Index() {
-    const [isLoading, setLoading] = React.useState(true);
+    const theme = useTheme();
+    const [isLoading, setLoading] = useState(true);
 
     async function startLogin() : Promise<void> {
         if (Cache.currentSession == undefined) {
@@ -32,15 +31,22 @@ export default function Index() {
 
                 router.replace("/home");
             }
-            catch (e) {
-                if (e instanceof SPHError) {
-                    router.replace("/login");
-                    return;
-                }
+            catch (e: any) {
+                Alert.alert("Fehler", "Es gab einen Fehler beim automatischen anmelden!\n\n" + e.message + "\n\nErneut versuchen?", [
+                    {
+                        text: 'Ja',
+                        onPress: () => startLogin(),
+                    },
+                    {
+                        text: 'Nein',
+                        onPress: () => router.replace("/login"),
+                        style: 'cancel',
+                    }]);
+                return;
             }
         }
-
-        setTimeout(() => router.replace("/home"), 10)
+        else
+            setTimeout(() => router.replace("/home"), 10)
     }
     useEffect(() => {
         if (isLoading)
@@ -50,7 +56,7 @@ export default function Index() {
     }, [isLoading]);
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
             <Text variant={"titleLarge"}>Lädt...</Text>
             <ActivityIndicator animating={true} size={"large"} />
         </SafeAreaView>

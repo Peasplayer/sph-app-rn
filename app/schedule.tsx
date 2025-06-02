@@ -115,7 +115,7 @@ export default function Schedule() {
             hiddenSubjects: _options?.hiddenSubjects ?? hiddenSubjects,
             showSubjectsFromOtherWeek: _options?.showSubjectsFromOtherWeek ?? showSubjectsFromOtherWeek,
             hiddenSubjectsVisible: _options?.hiddenSubjectsVisible ?? hiddenSubjectsVisible,
-            scheduleType: _options?.scheduleType ?? selectedSchedule.type,
+            scheduleType: _options?.scheduleType,
         }
 
         let scheduleData = getSelectedSchedule(options.schedule, options.scheduleType);
