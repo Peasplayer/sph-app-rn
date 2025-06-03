@@ -124,7 +124,7 @@ export default function DetailsScreen() {
             catch (error) {
                 console.log("err in chat load", error);
             }
-        }).catch((e: Error) => console.log(e));
+        }).catch((e: Error) => Alert.alert("Fehler", "Es gab einen Fehler beim Laden der Nachrichten!\n\n"  + e.message));
     }
 
     if (data === undefined) {
